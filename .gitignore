@@ -1,0 +1,6 @@
+# binary
+/aria2tui
+
+# go
+*.test
+*.out
