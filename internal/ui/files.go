@@ -211,7 +211,7 @@ func (a *App) viewFiles(h int) string {
 	for i := f.scroll; i < end; i++ {
 		e := f.entries[i]
 		// hitbox: +2 x (box border+pad), +1 y (box top border) + 1 (header line)
-		a.addHit(2, bodyTop+2+(i-f.scroll), inner, 1, fmt.Sprintf("fbrow:%d", i))
+		a.addHit(2, a.bodyTop()+2+(i-f.scroll), inner, 1, fmt.Sprintf("fbrow:%d", i))
 		icon, style := "▸ ", styleText
 		size := humanBytes(e.size)
 		if e.isDir {

@@ -188,7 +188,7 @@ func (a *App) viewHistory(h int) string {
 	end := minInt(m.scroll+listH, len(m.rows))
 	for i := m.scroll; i < end; i++ {
 		e := m.rows[i]
-		a.addHit(0, bodyTop+2+(i-m.scroll), w, 1, fmt.Sprintf("hrow:%d", i))
+		a.addHit(0, a.bodyTop()+2+(i-m.scroll), w, 1, fmt.Sprintf("hrow:%d", i))
 		stStyle := styleGood
 		stTxt := "done"
 		if e.Status == "error" {

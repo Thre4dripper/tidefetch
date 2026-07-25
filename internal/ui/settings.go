@@ -187,7 +187,7 @@ func (a *App) viewSettings(h int) string {
 	fmt.Fprint(&b, styleTitle.Render("Settings"), styleDim.Render("  (live daemon options — saved to session)"), "\n\n")
 
 	for i, def := range settingDefs {
-		a.addHit(0, bodyTop+2+i, a.width, 1, fmt.Sprintf("srow:%d", i))
+		a.addHit(0, a.bodyTop()+2+i, a.width, 1, fmt.Sprintf("srow:%d", i))
 		val := m.opts[def.key]
 		disp := val
 		switch def.key {

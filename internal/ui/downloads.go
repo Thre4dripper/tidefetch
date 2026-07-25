@@ -392,7 +392,7 @@ func (a *App) renderList(w, h int) string {
 		end = len(a.rows)
 	}
 	for i := a.scroll; i < end; i++ {
-		y := bodyTop + 1 + (i-a.scroll)*rowH
+		y := a.bodyTop() + 1 + (i-a.scroll)*rowH
 		a.addHit(2, y, innerW, rowH, fmt.Sprintf("row:%d", i))
 		lines = append(lines, strings.Split(a.renderRow(a.rows[i], i == a.cursor, innerW), "\n")...)
 	}

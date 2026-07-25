@@ -152,7 +152,7 @@ func (a *App) viewDetails(h int) string {
 		} else {
 			seg = styleTab.Render(t)
 		}
-		a.addHit(x, bodyTop+2, lipgloss.Width(seg), 1, fmt.Sprintf("dtab:%d", i))
+		a.addHit(x, a.bodyTop()+2, lipgloss.Width(seg), 1, fmt.Sprintf("dtab:%d", i))
 		x += lipgloss.Width(seg)
 		tabs.WriteString(seg)
 	}

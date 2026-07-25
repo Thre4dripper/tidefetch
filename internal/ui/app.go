@@ -771,8 +771,17 @@ func (a *App) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return a.updateDownloads(msg)
 }
 
+// tabsHeight is the rendered height of the tab bar — big Surge-style
+// buttons on wide terminals, a compact strip on narrow ones.
+func (a *App) tabsHeight() int {
+	if a.width >= 110 {
+		return 3
+	}
+	return 1
+}
+
 // bodyTop is the first row of the body area (header + tab bar above it).
-const bodyTop = 2
+func (a *App) bodyTop() int { return 1 + a.tabsHeight() }
 
 // View implements tea.Model.
 func (a *App) View() string {
@@ -790,7 +799,7 @@ func (a *App) View() string {
 		extra = 1
 	}
 
-	bodyH := a.height - bodyTop - 1 - extra
+	bodyH := a.height - a.bodyTop() - 1 - extra
 	if bodyH < 3 {
 		bodyH = 3
 	}
@@ -814,7 +823,7 @@ func (a *App) View() string {
 	}
 	body = lipgloss.NewStyle().Height(bodyH).MaxHeight(bodyH).Render(body)
 
-	footer := a.renderFooter(bodyTop + bodyH + extra)
+	footer := a.renderFooter(a.bodyTop() + bodyH + extra)
 
 	parts := []string{header, tabs, body}
 	if toastLine != "" {
@@ -886,11 +895,74 @@ func (a *App) renderHeader() string {
 
 var tabNames = []string{"All", "Active", "Queued", "Finished"}
 
+// tabCounts returns the number of downloads behind each tab.
+func (a *App) tabCounts() [4]int {
+	return [4]int{
+		len(a.active) + len(a.waiting) + len(a.stopped),
+		len(a.active),
+		len(a.waiting),
+		len(a.stopped),
+	}
+}
+
 func (a *App) renderTabs() string {
+	if a.tabsHeight() == 1 {
+		return a.renderTabsCompact()
+	}
+	counts := a.tabCounts()
+
+	type seg struct {
+		label  string
+		id     string
+		active bool
+	}
+	segs := make([]seg, 0, 9)
+	for i, name := range tabNames {
+		segs = append(segs, seg{
+			label:  fmt.Sprintf("%d  %s (%d)", i+1, name, counts[i]),
+			id:     fmt.Sprintf("tab:%d", i),
+			active: a.view == viewDownloads && a.tab == i,
+		})
+	}
+	segs = append(segs,
+		seg{label: "", id: ""}, // spacer
+		seg{label: "＋ Add", id: "nav:add", active: a.view == viewAdd},
+		seg{label: "▤ Files", id: "nav:files", active: a.view == viewFiles},
+		seg{label: "⟲ History", id: "nav:history", active: a.view == viewHistory},
+		seg{label: "⚙ Settings", id: "nav:settings", active: a.view == viewSettings},
+	)
+
+	blocks := make([]string, 0, len(segs))
+	x := 1 // leading space
+	blocks = append(blocks, " ")
+	for _, s := range segs {
+		if s.id == "" {
+			blocks = append(blocks, "  ")
+			x += 2
+			continue
+		}
+		st := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 2)
+		if s.active {
+			st = st.BorderForeground(cAccent).Foreground(cBright).Bold(true)
+		} else {
+			st = st.BorderForeground(cFaint).Foreground(cDim)
+		}
+		chip := st.Render(s.label)
+		w := lipgloss.Width(chip)
+		a.addHit(x, 1, w, 3, s.id)
+		x += w
+		blocks = append(blocks, chip)
+	}
+	return lipgloss.JoinHorizontal(lipgloss.Top, blocks...)
+}
+
+// renderTabsCompact is the single-line tab strip for narrow terminals.
+func (a *App) renderTabsCompact() string {
+	counts := a.tabCounts()
 	var b strings.Builder
 	x := 0
 	for i, name := range tabNames {
-		label := fmt.Sprintf("%d %s", i+1, name)
+		label := fmt.Sprintf("%d %s (%d)", i+1, name, counts[i])
 		var seg string
 		if a.view == viewDownloads && a.tab == i {
 			seg = styleTabActive.Render(label)
