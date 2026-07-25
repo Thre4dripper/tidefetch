@@ -317,7 +317,7 @@ func collectURIs(st aria2.Status) []string {
 }
 
 // sidebarW is the width of the right info panel.
-const sidebarW = 42
+const sidebarW = 46
 
 // rowH is the height of one download card.
 const rowH = 3
@@ -400,6 +400,16 @@ func (a *App) renderList(w, h int) string {
 	title := fmt.Sprintf("Downloads · %d", len(a.rows))
 	if len(a.rows) > visible {
 		title = fmt.Sprintf("Downloads · %d/%d", a.cursor+1, len(a.rows))
+	}
+	if a.filter != "" || a.searching {
+		title += " · /" + a.filter
+		if a.searching {
+			title += "▌"
+		}
+	}
+	if a.sortMode != 0 {
+		names := []string{"", "name", "size", "speed", "progress"}
+		title += " · sort:" + names[a.sortMode]
 	}
 	border := styleBoxBorder
 	if a.view == viewDownloads {
