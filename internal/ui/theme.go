@@ -80,8 +80,8 @@ var (
 	styleGraphTask   = lipgloss.NewStyle().Foreground(cGreen)
 
 	// clickable footer buttons
-	styleBtn    = lipgloss.NewStyle().Foreground(cText).Background(cSurface2).Padding(0, 1)
-	styleBtnKey = lipgloss.NewStyle().Foreground(cAccent2).Background(cSurface2).Bold(true).Padding(0, 0, 0, 1)
+	styleBtn    = lipgloss.NewStyle().Foreground(cText).Background(cSurface2).Padding(0, 2, 0, 1)
+	styleBtnKey = lipgloss.NewStyle().Foreground(cAccent2).Background(cSurface2).Bold(true).Padding(0, 0, 0, 2)
 )
 
 // statusStyle picks color + icon for an aria2 download status.
