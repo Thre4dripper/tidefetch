@@ -25,6 +25,11 @@ history, directory browser, live speed charts.
   dialog buttons, the bottom button bar; scroll with the wheel
 - **File browser** — browse the download folder in the TUI: open files,
   reveal in Finder/Explorer, delete, free-space readout (`f`)
+- **Link inspector** — IDM-style pre-download check (`ctrl+k` in the add
+  form): does the server support resume? real size, server filename, type
+- **Full aria2 option set when adding** — advanced panel with resume/continue,
+  file allocation (none/prealloc/trunc/falloc), per-task speed limit, retries,
+  checksum verification, custom headers, referer, user-agent, proxy, seed ratio
 - **Selection-based settings** — common options pick from sensible presets
   with `←/→`, free-text where it matters (proxy, user-agent, dir)
 - **Surge-style chunk map** — live piece grid for the selected download

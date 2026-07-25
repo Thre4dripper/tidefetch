@@ -133,7 +133,9 @@ func (a *App) updateHistory(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.add.reset(a.cfg)
 			a.add.urls.SetValue(e.URL)
 			if e.Dir != "" {
-				a.add.dir.SetValue(e.Dir)
+				if f := a.add.fieldByKey("dir"); f != nil {
+					f.value = e.Dir
+				}
 			}
 			a.view = viewAdd
 			return a, a.add.focusCmd()

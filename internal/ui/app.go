@@ -433,6 +433,12 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.settings.absorb(msg)
 		return a, nil
 
+	case probeMsg:
+		a.add.probing = false
+		res := msg.res
+		a.add.probe = &res
+		return a, nil
+
 	case historySavedMsg:
 		if msg.err != nil {
 			a.pushToast("history save failed: "+msg.err.Error(), toastErr)
@@ -577,11 +583,23 @@ func (a *App) dispatchClick(id string) (tea.Model, tea.Cmd) {
 	case "addfld":
 		if a.view == viewAdd {
 			n := atoiSafe(arg)
-			if n == fldPause {
-				a.add.pauseStart = !a.add.pauseStart
+			m := &a.add
+			wasFocused := m.focus == n
+			m.setFocusIndex(n)
+			if f := m.field(); f != nil {
+				switch f.kind {
+				case kindCheck:
+					if f.value == "true" {
+						f.value = ""
+					} else {
+						f.value = "true"
+					}
+				case kindSelect:
+					if wasFocused { // second click cycles the value
+						return a.handleKey(tea.KeyMsg{Type: tea.KeyRight})
+					}
+				}
 			}
-			a.add.focus = n
-			a.add.syncFocus()
 			return a, textinput.Blink
 		}
 		return a, nil
@@ -960,8 +978,9 @@ func (a *App) footerButtons() []footerButton {
 		}
 	case viewAdd:
 		return []footerButton{
-			{"tab", "next field"}, {"ctrl+o", "browse dir"}, {"ctrl+t", "torrent file"},
-			{"ctrl+s", "start download"}, {"esc", "cancel"},
+			{"tab", "next field"}, {"ctrl+k", "check link"}, {"ctrl+a", "advanced"},
+			{"ctrl+o", "browse dir"}, {"ctrl+t", "torrent file"},
+			{"ctrl+s", "start"}, {"esc", "cancel"},
 		}
 	case viewDetails:
 		return []footerButton{

@@ -289,6 +289,9 @@ func (a *App) viewHelp(h int) string {
 		{"d", "jump to download dir"},
 	}) + "\n" + styleTitle.Render("Add form") + "\n" + col([][2]string{
 		{"tab", "next field"},
+		{"←/→", "change selector values"},
+		{"ctrl+k", "check link (size · resumable?)"},
+		{"ctrl+a", "advanced aria2 options"},
 		{"ctrl+o", "browse directory"},
 		{"ctrl+t", "pick .torrent/.metalink"},
 		{"ctrl+s", "start"},
