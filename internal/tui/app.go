@@ -637,11 +637,19 @@ func (a *App) dispatchClick(id string) (tea.Model, tea.Cmd) {
 		return a, nil
 	case "srow":
 		n := atoiSafe(arg)
-		if a.view == viewSettings && n >= 0 && n < len(settingDefs) {
+		if a.view == viewSettings && n >= 0 && n < len(a.settings.defs()) {
 			if a.settings.cursor == n && !a.settings.editing {
 				return a.handleKey(tea.KeyMsg{Type: tea.KeyEnter})
 			}
 			a.settings.cursor = n
+		}
+		return a, nil
+	case "stab":
+		n := atoiSafe(arg)
+		if a.view == viewSettings && n >= 0 && n < len(settingTabs) {
+			a.settings.tab = n
+			a.settings.cursor, a.settings.scroll = 0, 0
+			a.settings.editing, a.settings.filtering = false, false
 		}
 		return a, nil
 	case "dtab":
@@ -1080,12 +1088,14 @@ func (a *App) footerButtons() []footerButton {
 		}
 	case viewSettings:
 		return []footerButton{
-			{"enter", "edit / save"}, {"r", "reload"}, {"esc", "back"},
+			{"left", "prev category"}, {"right", "next category"},
+			{"enter", "edit / save"}, {"/", "filter all"}, {"r", "reload"}, {"esc", "back"},
 		}
 	case viewFiles:
 		return []footerButton{
 			{"enter", "open"}, {"backspace", "up"}, {"o", "reveal"}, {"x", "delete"},
-			{"d", "download dir"}, {".", "hidden"}, {"esc", "back"},
+			{"n", "new folder"}, {"~", "home"}, {"/", "root"},
+			{"d", "downloads"}, {".", "hidden"}, {"esc", "back"},
 		}
 	default: // help
 		return []footerButton{{"esc", "back"}, {"q", "quit"}}
