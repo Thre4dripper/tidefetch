@@ -21,6 +21,27 @@ import (
 // Options is a set of aria2 input options (all values are strings, as aria2 expects).
 type Options map[string]string
 
+// MarshalJSON encodes aria2's cumulative options as arrays when callers
+// provide newline-delimited values. aria2 accepts strings for one value, but
+// JSON-RPC requires a list to represent repeated --header / --index-out flags.
+func (o Options) MarshalJSON() ([]byte, error) {
+	values := make(map[string]any, len(o))
+	for key, value := range o {
+		if (key == OptHeader || key == "index-out") && strings.Contains(value, "\n") {
+			var items []string
+			for _, item := range strings.Split(value, "\n") {
+				if item = strings.TrimSpace(item); item != "" {
+					items = append(items, item)
+				}
+			}
+			values[key] = items
+			continue
+		}
+		values[key] = value
+	}
+	return json.Marshal(values)
+}
+
 // Size is an int64 that unmarshals from aria2's quoted decimal strings ("12345").
 type Size int64
 
