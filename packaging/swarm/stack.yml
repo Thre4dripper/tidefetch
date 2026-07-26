@@ -1,0 +1,58 @@
+services:
+  tidefetch:
+    image: ghcr.io/thre4dripper/tidefetch:latest
+    environment:
+      TIDEFETCH_PASSWORD_FILE: /run/secrets/tidefetch_password
+      TZ: ${TZ:-Etc/UTC}
+    secrets:
+      - tidefetch_password
+    ports:
+      - target: 8210
+        published: 8210
+        protocol: tcp
+        mode: ingress
+      - target: 6881
+        published: 6881
+        protocol: tcp
+        mode: host
+      - target: 6881
+        published: 6881
+        protocol: udp
+        mode: host
+    volumes:
+      - tidefetch_config:/config
+      - tidefetch_downloads:/downloads
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 60s
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+      placement:
+        constraints:
+          - node.labels.tidefetch == true
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 64M
+
+secrets:
+  tidefetch_password:
+    external: true
+
+volumes:
+  tidefetch_config:
+  tidefetch_downloads:
