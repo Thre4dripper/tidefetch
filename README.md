@@ -1,12 +1,20 @@
-# aria2tui
+# ⬡ tidefetch
 
-A fast, polished terminal UI for [aria2](https://aria2.github.io) — the
-download utility that does HTTP(S), FTP, SFTP, BitTorrent and Metalink.
-Surge-style dark interface, IDM-style workflow: queue control, categories,
-history, directory browser, live speed charts.
+**A fast terminal UI + self-hosted web UI for [aria2](https://aria2.github.io)** —
+the download engine that speaks HTTP(S), FTP, SFTP, BitTorrent and Metalink.
+
+One binary, three faces:
+
+- `tidefetch` — a polished, mouse-driven **TUI** with live charts, queue
+  control, history and an IDM-style workflow
+- `tidefetch serve` — a modern, resource-friendly **web UI** for homelabs
+  and remote servers (WebSocket deltas, virtualized lists, canvas piece
+  maps — built to stay smooth where older aria2 frontends choke)
+- `packaging/docker` — an **all-in-one container**: web UI + aria2 engine,
+  one port, two volumes, done
 
 ```
- ⬡ aria2tui   ▼ 12.4 MB/s  ▲ 1.2 MB/s  ▁▂▃▅▇█▆▅▃▂  active 3 · queued 2 · stopped 8      ● aria2 1.37.0
+ ⬡ tidefetch   ▼ 12.4 MB/s  ▲ 1.2 MB/s  ▁▂▃▅▇█▆▅▃▂  active 3 · queued 2 · stopped 8      ● aria2 1.37.0
   1 All   2 Active   3 Queued   4 Finished  │  ＋ Add   ⟲ History   ⚙ Settings
 ┃ ⇣ ubuntu-24.04.2-desktop-arm64.iso                                              ⧉ ACTIVE
   ██████████████████████▌───────────────────────  46.8%  2.5 GB / 5.3 GB  12.4 MB/s  eta 3m52s  seeds 74
@@ -14,70 +22,89 @@ history, directory browser, live speed charts.
   ████████▏──────────────────────────────────────  17.2%  24 MB / 142 MB  paused
 ```
 
+tidefetch is an independent project powered by aria2 and is not affiliated
+with the aria2 project.
+
 ## Features
 
-- **Live dashboard** — global ↓/↑ speeds, sparkline history, per-download
-  progress bars (⅛-cell precision), ETA, connections, seeders
-- **btop-style side panel** — per-task braille speed graph for the selected
-  download, global traffic graphs, disk usage of the target volume, session
-  stats; toggle with `t`
-- **Full mouse support** — click tabs, rows (twice for details), form fields,
-  dialog buttons, the bottom button bar; scroll with the wheel
-- **File browser** — browse the download folder in the TUI: open files,
-  reveal in Finder/Explorer, delete, free-space readout (`f`)
-- **Link inspector** — IDM-style pre-download check (`ctrl+k` in the add
-  form): does the server support resume? real size, server filename, type
-- **Full aria2 option set when adding** — advanced panel with resume/continue,
-  file allocation (none/prealloc/trunc/falloc), per-task speed limit, retries,
-  checksum verification, custom headers, referer, user-agent, proxy, seed ratio
-- **Selection-based settings** — common options pick from sensible presets
-  with `←/→`, free-text where it matters (proxy, user-agent, dir)
-- **Surge-style chunk map** — live piece grid for the selected download
-- **Every download type aria2 supports** — HTTP(S), FTP, SFTP, magnet links,
-  `.torrent` files, `.metalink`/`.meta4` files, multi-mirror downloads
-- **Full queue control** — pause/resume (single or all), reorder queue,
-  remove, remove + delete files from disk, retry failed downloads
-- **Directory lookup** — built-in filesystem browser to pick the save
-  directory (or create one) and to pick torrent/metalink files, with free
-  disk space shown as you browse
-- **Download history** — persisted across runs, IDM-style automatic
-  categories (Video, Audio, Documents, Archives, Programs, Images, …),
-  search, filter by category, one-key re-download
-- **Details panel** — live speed graph, files (with per-file selection for
-  torrents), peers, servers, piece map, per-download speed limit
-- **Live settings** — edit daemon options over RPC (concurrency, split,
-  speed limits, seed ratio, proxy, …), saved into the aria2 session
-- **Speed limiting** — global and per-download, adjustable with one key
-- **Daemon management** — attaches to a running aria2c or spawns one with
-  session persistence; downloads keep running after you quit the UI
-- **Startup queueing** — `aria2tui <URL>...` adds downloads immediately
+**Both UIs**
+
+- Add anything aria2 supports — HTTP(S), FTP, SFTP, magnets, `.torrent`,
+  `.metalink`/`.meta4`, multi-mirror
+- Full queue control: pause/resume (single or all), reorder, remove,
+  remove + delete files, retry failed
+- Link inspector — IDM-style pre-download check: resumability, real size,
+  server filename, content type
+- Advanced per-download options: rename, split/connections, speed limits,
+  file allocation (`none`/`prealloc`/`trunc`/`falloc`), checksum, referer,
+  custom headers, proxy, user agent, seed ratio, add-paused
+- Live per-download details: files (with selection), peers, servers,
+  piece map, speeds
+- Global aria2 settings editor (curated groups + all 100-plus raw options)
+- Persistent download history with automatic IDM-style categories,
+  search, filter, one-click re-download
+- Daemon management: attaches to a running aria2, or spawns one with
+  session persistence — downloads keep running when the UI is closed
+
+**Terminal UI** — btop-style mouse support, sparkline charts, disk gauge,
+built-in file browser, keyboard-first workflow.
+
+**Web UI** — dark glass design, WebSocket push (no per-tab polling storms),
+virtualized task list, canvas piece map (a million pieces render as ≤240
+buckets), server-side link probe, password login with bcrypt + rate
+limiting, strict CSP, same-origin guards.
 
 ## Install
 
 Requires [aria2](https://aria2.github.io) (`brew install aria2` /
-`apt install aria2`) and Go 1.22+.
+`apt install aria2`) and Go 1.22+ (Node 20+ only if you rebuild the web UI).
 
 ```sh
-go install github.com/turbostart/aria2c-tui@latest   # installs `aria2c-tui`
-# or from a checkout:
+# from a checkout
+make build && ./tidefetch          # TUI
+./tidefetch serve                  # web UI on http://127.0.0.1:8210
+
+# or install into $GOPATH/bin
 make install
 ```
+
+### Docker (all-in-one, self-hosted)
+
+```sh
+cd packaging/docker
+TIDEFETCH_PASSWORD=change-me docker compose up -d
+# → http://<host>:8210
+```
+
+The image bundles the aria2 engine (installed from the Alpine package;
+aria2 is GPL-2.0-or-later — see its [source](https://github.com/aria2/aria2)).
+Volumes: `/config` (settings, session, history) and `/downloads`.
 
 ## Usage
 
 ```sh
-aria2tui                                  # open the UI
-aria2tui https://example.com/file.iso     # open and start downloading
-aria2tui "magnet:?xt=urn:btih:..."        # magnets work too
-aria2tui -url ws://nas:6800/jsonrpc -secret s3cret   # remote daemon
-aria2tui -no-spawn                        # never start a local daemon
+tidefetch                                  # open the TUI
+tidefetch https://example.com/file.iso     # open and start downloading
+tidefetch "magnet:?xt=urn:btih:..."        # magnets work too
+tidefetch -url ws://nas:6800/jsonrpc -secret s3cret   # remote daemon
+tidefetch serve -host 0.0.0.0 -password s3cret        # LAN web UI
+tidefetch doctor                           # diagnose your setup
 ```
 
-On first run a config file is created at `~/.config/aria2tui/config.json`
+On first run a config file is created at `~/.config/tidefetch/config.json`
 with a random RPC secret. History and the aria2 session live in
-`~/.local/share/aria2tui/`.
+`~/.local/share/tidefetch/`. (Configs from the old *aria2tui* name migrate
+automatically.)
 
-## Keys
+### Web UI security
+
+- Loopback binds work without a password; any other bind **requires**
+  `-password` (stored as a bcrypt hash) or an explicit `-no-auth` for
+  reverse-proxy setups.
+- The aria2 RPC secret never reaches the browser — the UI talks only to
+  the authenticated tidefetch backend.
+
+## TUI keys
 
 | Key | Action |
 | --- | --- |
@@ -87,41 +114,28 @@ with a random RPC secret. History and the aria2 session live in
 | `P` / `R` | pause all · resume all |
 | `enter` / `i` | details (info · files · peers · servers) |
 | `a` | add downloads (URLs, magnets, torrent files) |
-| `x` | remove (with confirmation) |
-| `D` | remove **and delete files from disk** |
+| `x` / `D` | remove · remove **and delete files** |
 | `r` | retry a failed download |
 | `J/K` | move in queue |
-| `S` | cycle sort: default · name · size · speed · progress |
+| `S` | cycle sort |
 | `/` | search; `esc` clears |
 | `o` / `y` | open folder · copy URL/magnet |
-| `t` | toggle the side panel |
-| `f` | file browser (open · reveal · delete) |
+| `t` / `f` | side panel · file browser |
 | `[` `]` / `{` `}` | global ↓ / ↑ speed limit −/+ |
-| `+` `-` | per-download ↓ limit (in details) |
-| `c` | clear finished results |
-| `w` | save session |
 | `h` / `s` / `?` | history · settings · help |
-| `q` | quit — daemon keeps downloading |
-| `Q` | quit **and** shut the daemon down |
-
-Add form: `tab` next field · `ctrl+o` browse directory · `ctrl+t` pick a
-torrent/metalink file · `ctrl+s` start. One URL per line; multiple mirrors
-for the same file go on one line separated by spaces.
-
-Mouse: click tabs and rows (click a selected row again for details), click
-the buttons in the bottom bar, scroll lists with the wheel.
+| `q` / `Q` | quit · quit **and** shut the daemon down |
 
 ## Standalone RPC client
 
-The aria2 JSON-RPC client is an independent package with no TUI
+The aria2 JSON-RPC client is an independent package with no UI
 dependencies — use it in your own tools:
 
 ```go
-import "github.com/turbostart/aria2c-tui/pkg/aria2"
+import "github.com/turbostart/tidefetch/pkg/aria2"
 
 client, _ := aria2.Dial(ctx, "ws://127.0.0.1:6800/jsonrpc", "secret")
 gid, _ := client.AddURI(ctx, []string{"https://example.org/file.iso"},
-    aria2.Options{aria2.OptDir: "/downloads", aria2.OptSplit: "16"})
+    aria2.Options{"dir": "/downloads", "split": "16"})
 
 for n := range client.Notifications() {
     fmt.Println(n.Method, n.GID) // aria2.onDownloadComplete abc123…
@@ -133,14 +147,36 @@ remove, queue position, per-download and global options, global stats,
 `system.multicall`, session save/shutdown, and event notifications over
 WebSocket.
 
+## Project layout
+
+```
+cmd/tidefetch/     entry point (tui · serve · doctor)
+pkg/aria2/         standalone aria2 JSON-RPC client
+internal/tui/      Bubble Tea terminal UI
+internal/server/   web backend: broker, REST API, WebSocket hub, auth
+internal/daemon/   aria2c discovery / spawn / attach
+internal/config/   settings (+ legacy migration)
+internal/history/  persistent categorized history
+web/               Svelte 5 + Vite frontend (embedded via go:embed)
+packaging/docker/  all-in-one image + compose example
+```
+
 ## Development
 
 ```sh
-make build      # build ./aria2tui
+make build      # web UI + binary (embedded assets)
+make backend    # Go only, reuses last web build
+make web        # frontend only
 make test       # unit + integration tests (integration skips without aria2c)
-make run        # build & run
+make docker     # build the container image
 ```
+
+Frontend dev loop: `cd web && npm run dev` proxies `/api` to a running
+`tidefetch serve` on :8210.
 
 ## License
 
-MIT
+MIT for everything in this repository. The aria2 engine is a separate
+GPL-2.0-or-later project; tidefetch talks to it over JSON-RPC and does not
+link against it. Container images that bundle aria2 include its license
+and point to its source.
