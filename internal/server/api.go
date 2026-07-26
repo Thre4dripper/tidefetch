@@ -14,8 +14,8 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/turbostart/tidefetch/internal/history"
-	"github.com/turbostart/tidefetch/pkg/aria2"
+	"github.com/Thre4dripper/tidefetch/internal/history"
+	"github.com/Thre4dripper/tidefetch/pkg/aria2"
 )
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

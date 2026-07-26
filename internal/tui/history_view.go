@@ -7,7 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/turbostart/tidefetch/internal/history"
+	"github.com/Thre4dripper/tidefetch/internal/history"
 )
 
 // historyModel lists past downloads with category filter + search.

@@ -131,7 +131,7 @@ The aria2 JSON-RPC client is an independent package with no UI
 dependencies — use it in your own tools:
 
 ```go
-import "github.com/turbostart/tidefetch/pkg/aria2"
+import "github.com/Thre4dripper/tidefetch/pkg/aria2"
 
 client, _ := aria2.Dial(ctx, "ws://127.0.0.1:6800/jsonrpc", "secret")
 gid, _ := client.AddURI(ctx, []string{"https://example.org/file.iso"},

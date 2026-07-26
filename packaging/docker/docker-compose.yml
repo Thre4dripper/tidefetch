@@ -4,7 +4,7 @@ services:
       context: ../..
       dockerfile: packaging/docker/Dockerfile
     # or, once published:
-    # image: ghcr.io/turbostart/tidefetch:latest
+    # image: ghcr.io/thre4dripper/tidefetch:latest
     container_name: tidefetch
     restart: unless-stopped
     ports:

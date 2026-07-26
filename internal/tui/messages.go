@@ -6,7 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/turbostart/tidefetch/pkg/aria2"
+	"github.com/Thre4dripper/tidefetch/pkg/aria2"
 )
 
 // --- messages ---------------------------------------------------------------

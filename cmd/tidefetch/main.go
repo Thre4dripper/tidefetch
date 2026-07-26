@@ -22,11 +22,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/turbostart/tidefetch/internal/config"
-	"github.com/turbostart/tidefetch/internal/daemon"
-	"github.com/turbostart/tidefetch/internal/history"
-	"github.com/turbostart/tidefetch/internal/server"
-	"github.com/turbostart/tidefetch/internal/tui"
+	"github.com/Thre4dripper/tidefetch/internal/config"
+	"github.com/Thre4dripper/tidefetch/internal/daemon"
+	"github.com/Thre4dripper/tidefetch/internal/history"
+	"github.com/Thre4dripper/tidefetch/internal/server"
+	"github.com/Thre4dripper/tidefetch/internal/tui"
 )
 
 var version = "0.2.0"

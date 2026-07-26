@@ -1,4 +1,4 @@
-module github.com/turbostart/tidefetch
+module github.com/Thre4dripper/tidefetch
 
 go 1.26.1
 

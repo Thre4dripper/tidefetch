@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/turbostart/tidefetch/pkg/aria2"
+	"github.com/Thre4dripper/tidefetch/pkg/aria2"
 )
 
 const (

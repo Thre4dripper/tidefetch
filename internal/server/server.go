@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/turbostart/tidefetch/internal/config"
-	"github.com/turbostart/tidefetch/internal/daemon"
-	"github.com/turbostart/tidefetch/internal/history"
-	"github.com/turbostart/tidefetch/web"
+	"github.com/Thre4dripper/tidefetch/internal/config"
+	"github.com/Thre4dripper/tidefetch/internal/daemon"
+	"github.com/Thre4dripper/tidefetch/internal/history"
+	"github.com/Thre4dripper/tidefetch/web"
 )
 
 // Flags are the `tidefetch serve` command line options.

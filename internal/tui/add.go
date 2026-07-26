@@ -11,8 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/turbostart/tidefetch/internal/config"
-	"github.com/turbostart/tidefetch/pkg/aria2"
+	"github.com/Thre4dripper/tidefetch/internal/config"
+	"github.com/Thre4dripper/tidefetch/pkg/aria2"
 )
 
 // fieldKind distinguishes how an option row edits.

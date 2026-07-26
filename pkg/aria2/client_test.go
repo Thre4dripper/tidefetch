@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/turbostart/tidefetch/pkg/aria2"
+	"github.com/Thre4dripper/tidefetch/pkg/aria2"
 )
 
 // TestIntegration spins up a real aria2c daemon and exercises the client:

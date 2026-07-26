@@ -14,10 +14,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/turbostart/tidefetch/internal/config"
-	"github.com/turbostart/tidefetch/internal/daemon"
-	"github.com/turbostart/tidefetch/internal/history"
-	"github.com/turbostart/tidefetch/pkg/aria2"
+	"github.com/Thre4dripper/tidefetch/internal/config"
+	"github.com/Thre4dripper/tidefetch/internal/daemon"
+	"github.com/Thre4dripper/tidefetch/internal/history"
+	"github.com/Thre4dripper/tidefetch/pkg/aria2"
 )
 
 // View identifies the active screen.

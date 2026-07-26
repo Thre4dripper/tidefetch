@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/turbostart/tidefetch/internal/config"
+	"github.com/Thre4dripper/tidefetch/internal/config"
 )
 
 const sessionCookie = "tf_session"
