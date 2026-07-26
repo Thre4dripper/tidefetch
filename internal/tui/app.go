@@ -562,7 +562,7 @@ func (a *App) dispatchClick(id string) (tea.Model, tea.Cmd) {
 		return a, nil
 	case "pbtn":
 		if a.picker != nil {
-			return a.updatePicker(keyFromString(arg))
+			return a.pickerButtonClick(arg)
 		}
 		return a, nil
 	case "tab":

@@ -22,6 +22,9 @@ type fileBrowser struct {
 	scroll     int
 	showHidden bool
 	loaded     bool
+	mkdirMode  bool
+	mkdirBuf   string
+	notice     string
 }
 
 type fileEntry struct {
@@ -47,8 +50,16 @@ func (f *fileBrowser) ensure(root string) {
 func (f *fileBrowser) load() {
 	f.loaded = true
 	f.entries = f.entries[:0]
+	resolved, moved := nearestExistingDir(f.cwd)
+	if moved {
+		f.cwd = resolved
+		f.notice = "path unavailable · showing nearest accessible folder"
+	} else {
+		f.notice = ""
+	}
 	items, err := os.ReadDir(f.cwd)
 	if err != nil {
+		f.notice = err.Error()
 		return
 	}
 	for _, e := range items {
@@ -85,6 +96,34 @@ func (f *fileBrowser) selected() *fileEntry {
 // updateFiles handles keys in the file browser view.
 func (a *App) updateFiles(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	f := &a.files
+	if f.mkdirMode {
+		switch msg.String() {
+		case "enter":
+			name := strings.TrimSpace(f.mkdirBuf)
+			f.mkdirMode, f.mkdirBuf = false, ""
+			if name != "" && !strings.ContainsAny(name, `/\`) {
+				path := filepath.Join(f.cwd, name)
+				if err := os.Mkdir(path, 0o755); err != nil {
+					a.pushToast("mkdir failed: "+err.Error(), toastErr)
+				} else {
+					f.cwd = path
+					f.load()
+					a.pushToast("created "+name, toastOK)
+				}
+			}
+		case "esc":
+			f.mkdirMode, f.mkdirBuf = false, ""
+		case "backspace":
+			if len(f.mkdirBuf) > 0 {
+				f.mkdirBuf = f.mkdirBuf[:len(f.mkdirBuf)-1]
+			}
+		default:
+			if msg.Type == tea.KeyRunes {
+				f.mkdirBuf += string(msg.Runes)
+			}
+		}
+		return a, nil
+	}
 	switch msg.String() {
 	case "esc", "q", "f":
 		a.view = viewDownloads
@@ -105,10 +144,20 @@ func (a *App) updateFiles(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case ".":
 		f.showHidden = !f.showHidden
 		f.load()
-	case "d", "~":
+	case "d":
 		f.cwd = f.root
 		f.cursor, f.scroll = 0, 0
 		f.load()
+	case "~":
+		f.cwd, _ = os.UserHomeDir()
+		f.cursor, f.scroll = 0, 0
+		f.load()
+	case "/":
+		f.cwd = string(filepath.Separator)
+		f.cursor, f.scroll = 0, 0
+		f.load()
+	case "n":
+		f.mkdirMode, f.mkdirBuf = true, ""
 	case "backspace", "h", "left":
 		parent := filepath.Dir(f.cwd)
 		if parent != f.cwd {
@@ -184,7 +233,7 @@ func (a *App) viewFiles(h int) string {
 	}
 	w := a.width - 2
 	inner := w - 4
-	listH := h - 4 // box borders + header line + free-space line
+	listH := h - 5 // box borders + header + status/input line
 	if listH < 3 {
 		listH = 3
 	}
@@ -203,15 +252,26 @@ func (a *App) viewFiles(h int) string {
 	}
 	lines = append(lines, styleDim.Render(fmt.Sprintf("%-*s %10s  %s",
 		inner-30, "name", "size", "modified"))+"")
+	if f.notice != "" {
+		lines = append(lines, styleWarn.Render("  "+truncate(f.notice, inner-4)))
+		listH--
+		if listH < 1 {
+			listH = 1
+		}
+	}
 
 	if len(f.entries) == 0 {
 		lines = append(lines, styleFaint.Render("  (empty folder)"))
 	}
 	end := minInt(f.scroll+listH, len(f.entries))
+	rowYOffset := 2
+	if f.notice != "" {
+		rowYOffset++
+	}
 	for i := f.scroll; i < end; i++ {
 		e := f.entries[i]
 		// hitbox: +2 x (box border+pad), +1 y (box top border) + 1 (header line)
-		a.addHit(2, a.bodyTop()+2+(i-f.scroll), inner, 1, fmt.Sprintf("fbrow:%d", i))
+		a.addHit(2, a.bodyTop()+rowYOffset+(i-f.scroll), inner, 1, fmt.Sprintf("fbrow:%d", i))
 		icon, style := "▸ ", styleText
 		size := humanBytes(e.size)
 		if e.isDir {
@@ -229,6 +289,11 @@ func (a *App) viewFiles(h int) string {
 			row = " " + row
 		}
 		lines = append(lines, row)
+	}
+	if f.mkdirMode {
+		lines = append(lines, styleInputLabel.Render("  new folder: ")+styleText.Render(f.mkdirBuf)+styleAccent.Render("▌"))
+	} else {
+		lines = append(lines, styleFaint.Render("  ~ home  ·  / root  ·  d downloads  ·  n new folder"))
 	}
 
 	title := "Files · " + shortPath(f.cwd)

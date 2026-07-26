@@ -24,21 +24,45 @@ type dirPicker struct {
 	exts       []string // when fileMode, only show these extensions
 	mkdirBuf   string
 	mkdirMode  bool
+	notice     string
 	width      int
 	height     int
 	onPick     func(path string) tea.Cmd
 }
 
 func newDirPicker(title, start string, fileMode bool, exts []string, onPick func(string) tea.Cmd) *dirPicker {
-	if start == "" {
-		start, _ = os.UserHomeDir()
-	}
-	if fi, err := os.Stat(start); err != nil || !fi.IsDir() {
-		start, _ = os.UserHomeDir()
-	}
+	var moved bool
+	start, moved = nearestExistingDir(start)
 	p := &dirPicker{title: title, cwd: start, fileMode: fileMode, exts: exts, onPick: onPick}
+	if moved {
+		p.notice = "path unavailable · showing nearest accessible folder"
+	}
 	p.load()
 	return p
+}
+
+// nearestExistingDir walks toward the filesystem root until it finds a
+// readable directory, then falls back to the user's home directory.
+func nearestExistingDir(start string) (string, bool) {
+	home, _ := os.UserHomeDir()
+	if start == "" {
+		return home, true
+	}
+	original := filepath.Clean(start)
+	p := original
+	for {
+		if fi, err := os.Stat(p); err == nil && fi.IsDir() {
+			if _, err := os.ReadDir(p); err == nil {
+				return p, p != original
+			}
+		}
+		parent := filepath.Dir(p)
+		if parent == p {
+			break
+		}
+		p = parent
+	}
+	return home, home != original
 }
 
 func (p *dirPicker) setSize(w, h int) { p.width, p.height = w, h }
@@ -48,7 +72,14 @@ func (p *dirPicker) load() {
 	p.cursor, p.scroll = 0, 0
 	items, err := os.ReadDir(p.cwd)
 	if err != nil {
-		return
+		resolved, _ := nearestExistingDir(filepath.Dir(p.cwd))
+		p.cwd = resolved
+		p.notice = "folder became unavailable · showing nearest accessible folder"
+		items, err = os.ReadDir(p.cwd)
+		if err != nil {
+			p.notice = err.Error()
+			return
+		}
 	}
 	for _, e := range items {
 		name := e.Name()
@@ -92,14 +123,17 @@ func (a *App) updatePicker(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			name := strings.TrimSpace(p.mkdirBuf)
 			p.mkdirMode = false
 			p.mkdirBuf = ""
-			if name != "" {
+			if name != "" && name != "." && name != ".." && !strings.ContainsAny(name, `/\`) {
 				path := filepath.Join(p.cwd, name)
-				if err := os.MkdirAll(path, 0o755); err != nil {
+				if err := os.Mkdir(path, 0o755); err != nil {
 					a.pushToast("mkdir failed: "+err.Error(), toastErr)
 				} else {
 					p.cwd = path
+					p.notice = ""
 					p.load()
 				}
+			} else if name != "" {
+				a.pushToast("invalid folder name", toastErr)
 			}
 		case "esc":
 			p.mkdirMode = false
@@ -140,12 +174,26 @@ func (a *App) updatePicker(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "~":
 		home, _ := os.UserHomeDir()
 		p.cwd = home
+		p.notice = ""
+		p.load()
+	case "/":
+		p.cwd = string(filepath.Separator)
+		p.notice = ""
+		p.load()
+	case "d":
+		var moved bool
+		p.cwd, moved = nearestExistingDir(a.cfg.DownloadDir)
+		p.notice = ""
+		if moved {
+			p.notice = "download folder unavailable · showing nearest accessible folder"
+		}
 		p.load()
 	case "backspace", "h", "left":
 		parent := filepath.Dir(p.cwd)
 		if parent != p.cwd {
 			prev := filepath.Base(p.cwd)
 			p.cwd = parent
+			p.notice = ""
 			p.load()
 			for i, e := range p.entries {
 				if e.Name() == prev {
@@ -160,6 +208,7 @@ func (a *App) updatePicker(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			full := filepath.Join(p.cwd, e.Name())
 			if e.IsDir() {
 				p.cwd = full
+				p.notice = ""
 				p.load()
 			} else if p.fileMode {
 				cmd := p.onPick(full)
@@ -187,6 +236,45 @@ func (a *App) pickerRowClick(n int) (tea.Model, tea.Cmd) {
 		return a.updatePicker(tea.KeyMsg{Type: tea.KeyEnter})
 	}
 	p.cursor = n
+	return a, nil
+}
+
+// pickerButtonClick handles visible modal buttons directly. Keeping these
+// semantic avoids terminal/key translation differences for mouse clicks.
+func (a *App) pickerButtonClick(action string) (tea.Model, tea.Cmd) {
+	p := a.picker
+	if p == nil {
+		return a, nil
+	}
+	switch action {
+	case "home":
+		p.cwd, _ = os.UserHomeDir()
+		p.notice = ""
+		p.load()
+	case "root":
+		p.cwd = string(filepath.Separator)
+		p.notice = ""
+		p.load()
+	case "downloads":
+		var moved bool
+		p.cwd, moved = nearestExistingDir(a.cfg.DownloadDir)
+		p.notice = ""
+		if moved {
+			p.notice = "download folder unavailable · showing nearest accessible folder"
+		}
+		p.load()
+	case "new":
+		if !p.fileMode {
+			p.mkdirMode = true
+			p.mkdirBuf = ""
+		}
+	case "use":
+		if !p.fileMode {
+			cmd := p.onPick(p.cwd)
+			a.picker = nil
+			return a, cmd
+		}
+	}
 	return a, nil
 }
 
@@ -221,11 +309,26 @@ func (p *dirPicker) render() (string, []hitspec) {
 	}
 
 	writeLn(styleTitle.Render(p.title))
+	homeBtn := styleBadge.Render(" ⌂ home ")
+	rootBtn := styleBadge.Render(" / root ")
+	downBtn := styleBadge.Render(" ⇣ downloads ")
+	chipX := offX
+	for _, chip := range []struct {
+		text string
+		key  string
+	}{{homeBtn, "home"}, {rootBtn, "root"}, {downBtn, "downloads"}} {
+		specs = append(specs, hitspec{x: chipX, y: offY + line, w: lipgloss.Width(chip.text), h: 1, id: "pbtn:" + chip.key})
+		chipX += lipgloss.Width(chip.text) + 1
+	}
+	writeLn(homeBtn + " " + rootBtn + " " + downBtn)
 	freeInfo := ""
 	if free, total, err := diskUsage(p.cwd); err == nil && total > 0 {
 		freeInfo = styleDim.Render("  · " + humanBytes(free) + " free")
 	}
 	writeLn(styleAccent2.Render(truncate(p.cwd, inner-lipgloss.Width(freeInfo))) + freeInfo)
+	if p.notice != "" {
+		writeLn(styleWarn.Render(truncate(p.notice, inner)))
+	}
 	writeLn(styleFaint.Render(strings.Repeat("─", inner)))
 
 	if p.cursor < p.scroll {
@@ -271,8 +374,8 @@ func (p *dirPicker) render() (string, []hitspec) {
 	} else {
 		useBtn := styleToastGood.Render(" ✓ use this folder ")
 		newBtn := styleBadge.Render(" + new folder ")
-		specs = append(specs, hitspec{x: offX, y: offY + line, w: lipgloss.Width(useBtn), h: 1, id: "pbtn:s"})
-		specs = append(specs, hitspec{x: offX + lipgloss.Width(useBtn) + 2, y: offY + line, w: lipgloss.Width(newBtn), h: 1, id: "pbtn:n"})
+		specs = append(specs, hitspec{x: offX, y: offY + line, w: lipgloss.Width(useBtn), h: 1, id: "pbtn:use"})
+		specs = append(specs, hitspec{x: offX + lipgloss.Width(useBtn) + 2, y: offY + line, w: lipgloss.Width(newBtn), h: 1, id: "pbtn:new"})
 		writeLn(useBtn + "  " + newBtn)
 		fmt.Fprint(&b, styleKey.Render("↵"), styleDesc.Render(" enter dir  "),
 			styleKey.Render("bksp"), styleDesc.Render(" up  "),
