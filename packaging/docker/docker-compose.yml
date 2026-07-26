@@ -12,8 +12,13 @@ services:
       - "6881:6881"        # BitTorrent TCP (optional)
       - "6881:6881/udp"    # BitTorrent DHT/UDP (optional)
     environment:
-      # Required for non-loopback binds: the web UI password.
-      TIDEFETCH_PASSWORD: change-me
+      # Required for non-loopback binds. Set it in the shell or a local .env.
+      TIDEFETCH_PASSWORD: ${TIDEFETCH_PASSWORD:-}
+      TZ: ${TZ:-Etc/UTC}
     volumes:
       - ./config:/config
       - ./downloads:/downloads
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
