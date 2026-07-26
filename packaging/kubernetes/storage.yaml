@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tidefetch-config
+  namespace: tidefetch
+  labels:
+    app.kubernetes.io/name: tidefetch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tidefetch-downloads
+  namespace: tidefetch
+  labels:
+    app.kubernetes.io/name: tidefetch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi

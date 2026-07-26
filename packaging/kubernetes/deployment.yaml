@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tidefetch
+  namespace: tidefetch
+  labels:
+    app.kubernetes.io/name: tidefetch
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tidefetch
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tidefetch
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: tidefetch
+          image: ghcr.io/thre4dripper/tidefetch:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TIDEFETCH_PASSWORD_FILE
+              value: /run/secrets/web-password
+            - name: TZ
+              value: Etc/UTC
+          ports:
+            - name: http
+              containerPort: 8210
+              protocol: TCP
+            - name: bittorrent-tcp
+              containerPort: 6881
+              protocol: TCP
+            - name: bittorrent-udp
+              containerPort: 6881
+              protocol: UDP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+            - name: web-password
+              mountPath: /run/secrets
+              readOnly: true
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: tidefetch-config
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: tidefetch-downloads
+        - name: web-password
+          secret:
+            secretName: tidefetch-web-password
+            defaultMode: 0400
+            items:
+              - key: password
+                path: web-password
