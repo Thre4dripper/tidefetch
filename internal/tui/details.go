@@ -3,6 +3,7 @@ package tui
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -24,6 +25,8 @@ type detailsModel struct {
 	scroll  int
 	width   int
 	height  int
+	editing bool
+	editBuf string
 }
 
 func newDetailsModel() detailsModel { return detailsModel{} }
@@ -49,11 +52,52 @@ func (d *detailsModel) absorb(msg detailMsg) {
 	d.loaded = true
 }
 
-var detailTabs = []string{"Info", "Files", "Peers", "Servers"}
+var detailTabs = []string{"Info", "Files", "Peers", "Servers", "Options"}
+
+func (d *detailsModel) optionKeys() []string {
+	keys := make([]string, 0, len(d.options))
+	for key := range d.options {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
 
 // updateDetails handles keys in the details view.
 func (a *App) updateDetails(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	d := &a.details
+	if d.editing {
+		keys := d.optionKeys()
+		if d.cursor < 0 || d.cursor >= len(keys) {
+			d.editing = false
+			return a, nil
+		}
+		key := keys[d.cursor]
+		switch msg.String() {
+		case "enter":
+			d.editing = false
+			client := a.client
+			gid := d.gid
+			value := strings.TrimSpace(d.editBuf)
+			return a, tea.Sequence(
+				doRPC(key+" → "+value, func(ctx context.Context) error {
+					return client.ChangeOption(ctx, gid, aria2.Options{key: value})
+				}),
+				detailCmd(client, gid),
+			)
+		case "esc":
+			d.editing = false
+		case "backspace":
+			if len(d.editBuf) > 0 {
+				d.editBuf = d.editBuf[:len(d.editBuf)-1]
+			}
+		default:
+			if msg.Type == tea.KeyRunes {
+				d.editBuf += string(msg.Runes)
+			}
+		}
+		return a, nil
+	}
 	switch msg.String() {
 	case "esc", "q":
 		a.view = viewDownloads
@@ -70,7 +114,13 @@ func (a *App) updateDetails(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		d.cursor, d.scroll = 0, 0
 		return a, nil
 	case "j", "down":
-		d.cursor++
+		if d.tab == 4 {
+			if d.cursor < len(d.optionKeys())-1 {
+				d.cursor++
+			}
+		} else {
+			d.cursor++
+		}
 	case "k", "up":
 		if d.cursor > 0 {
 			d.cursor--
@@ -98,6 +148,14 @@ func (a *App) updateDetails(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				}),
 				detailCmd(a.client, gid),
 			)
+		}
+	case "enter", "e":
+		if d.tab == 4 {
+			keys := d.optionKeys()
+			if d.cursor >= 0 && d.cursor < len(keys) {
+				d.editing = true
+				d.editBuf = d.options[keys[d.cursor]]
+			}
 		}
 	case "+", "=", "-", "_":
 		up := msg.String() == "+" || msg.String() == "="
@@ -130,6 +188,35 @@ func (a *App) updateDetails(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			_ = copyClipboard(uri)
 			a.pushToast("URL copied", toastOK)
 		}
+	case "x":
+		st := d.status
+		client := a.client
+		if !a.cfg.ConfirmRemove {
+			a.view = viewDownloads
+			return a, doRPC("removed "+truncate(st.Name(), 40), func(ctx context.Context) error {
+				return removeAny(ctx, client, st)
+			})
+		}
+		a.confirmAction("Remove download?", truncate(st.Name(), 60), func() tea.Cmd {
+			a.view = viewDownloads
+			return doRPC("removed "+truncate(st.Name(), 40), func(ctx context.Context) error {
+				return removeAny(ctx, client, st)
+			})
+		})
+	case "D":
+		st := d.status
+		client := a.client
+		a.confirmAction("Remove AND delete files?",
+			truncate(st.Name(), 60)+"\nFiles are erased from disk. This cannot be undone.",
+			func() tea.Cmd {
+				a.view = viewDownloads
+				return doRPC("removed + deleted "+truncate(st.Name(), 40), func(ctx context.Context) error {
+					if err := removeAny(ctx, client, st); err != nil {
+						return err
+					}
+					return removeFilesOf(st)
+				})
+			})
 	}
 	return a, nil
 }
@@ -171,6 +258,8 @@ func (a *App) viewDetails(h int) string {
 		body = d.renderPeers(innerW, bodyH)
 	case 3:
 		body = d.renderServers(innerW, bodyH)
+	case 4:
+		body = d.renderOptions(innerW, bodyH)
 	default:
 		body = d.renderInfo(innerW, bodyH, a.gidHist[d.gid])
 	}
@@ -178,6 +267,47 @@ func (a *App) viewDetails(h int) string {
 	head := styleTitle.Render(truncate(st.Name(), innerW))
 	panel := stylePanel.Width(a.width - 2).Render(head + "\n" + tabs.String() + "\n" + body)
 	return panel
+}
+
+func (d *detailsModel) renderOptions(w, h int) string {
+	keys := d.optionKeys()
+	if len(keys) == 0 {
+		return styleDim.Render("  no task options")
+	}
+	if d.cursor >= len(keys) {
+		d.cursor = len(keys) - 1
+	}
+	listH := h - 2
+	if listH < 1 {
+		listH = 1
+	}
+	if d.cursor < d.scroll {
+		d.scroll = d.cursor
+	}
+	if d.cursor >= d.scroll+listH {
+		d.scroll = d.cursor - listH + 1
+	}
+	var lines []string
+	lines = append(lines, styleFaint.Render("  ↑↓ navigate · enter edit · esc cancel"))
+	end := minInt(len(keys), d.scroll+listH)
+	keyW := minInt(40, maxInt(24, w/2))
+	for i := d.scroll; i < end; i++ {
+		key := keys[i]
+		label := padRight(truncate(key, keyW-1), keyW)
+		value := d.options[key]
+		var row string
+		if i == d.cursor && d.editing {
+			row = styleSelBar.Render("┃") + styleFieldFocus.Render(label) +
+				styleText.Render(d.editBuf) + styleAccent.Render("▌")
+		} else if i == d.cursor {
+			row = styleRowSel.Width(w - 2).Render(styleSelBar.Render("┃") +
+				styleFieldFocus.Render(label) + styleAccent2.Render(truncate(value, w-keyW-6)))
+		} else {
+			row = " " + styleInputLabel.Render(label) + styleText.Render(truncate(value, w-keyW-6))
+		}
+		lines = append(lines, row)
+	}
+	return strings.Join(lines, "\n")
 }
 
 func kv(k, v string) string {

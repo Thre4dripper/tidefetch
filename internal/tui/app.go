@@ -1078,8 +1078,9 @@ func (a *App) footerButtons() []footerButton {
 		}
 	case viewDetails:
 		return []footerButton{
-			{"tab", "next panel"}, {"space", "toggle file"}, {"+", "limit +"}, {"-", "limit −"},
-			{"p", "pause"}, {"o", "open"}, {"y", "copy"}, {"esc", "back"},
+			{"tab", "next panel"}, {"enter", "edit option"}, {"space", "toggle file"},
+			{"+", "limit +"}, {"-", "limit −"}, {"p", "pause"},
+			{"x", "remove"}, {"D", "delete files"}, {"o", "open"}, {"y", "copy"}, {"esc", "back"},
 		}
 	case viewHistory:
 		return []footerButton{
