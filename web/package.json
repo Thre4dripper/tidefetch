@@ -1,0 +1,17 @@
+{
+  "name": "tidefetch-web",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "svelte": "^5.16.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  }
+}
