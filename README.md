@@ -3,6 +3,11 @@
 **A fast terminal UI + self-hosted web UI for [aria2](https://aria2.github.io)** —
 the download engine that speaks HTTP(S), FTP, SFTP, BitTorrent and Metalink.
 
+[Product site](https://thre4dripper.github.io/tidefetch/) ·
+[Documentation](docs/index.md) ·
+[Installation](docs/installation.md) ·
+[Homelab guide](docs/homelab.md)
+
 One binary, three faces:
 
 - `tidefetch` — a polished, mouse-driven **TUI** with live charts, queue
@@ -56,8 +61,13 @@ limiting, strict CSP, same-origin guards.
 
 ## Install
 
-Requires [aria2](https://aria2.github.io) (`brew install aria2` /
-`apt install aria2`) and Go 1.22+ (Node 20+ only if you rebuild the web UI).
+The repository does not have a tagged binary or registry release yet. The
+current source and local container builds work now. See the
+[installation guide](docs/installation.md) for release archives, Go,
+Homebrew, Winget, Scoop, Chocolatey, AUR, Nix, DEB, and RPM status.
+
+Native builds require [aria2](https://aria2.github.io) (`brew install aria2` /
+`apt install aria2`), Go 1.26.1, and Node 20+.
 
 ```sh
 # from a checkout
@@ -72,13 +82,20 @@ make install
 
 ```sh
 cd packaging/docker
-TIDEFETCH_PASSWORD=change-me docker compose up -d
+cp .env.example .env               # replace the password in .env
+docker compose up -d --build
 # → http://<host>:8210
 ```
 
 The image bundles the aria2 engine (installed from the Alpine package;
 aria2 is GPL-2.0-or-later — see its [source](https://github.com/aria2/aria2)).
 Volumes: `/config` (settings, session, history) and `/downloads`.
+
+Production examples: [Docker](docs/deployment/docker.md) ·
+[Swarm](docs/deployment/swarm.md) ·
+[Kubernetes/k3s](docs/deployment/kubernetes.md) ·
+[Unraid](docs/deployment/unraid.md) ·
+[reverse proxies](docs/reverse-proxy.md)
 
 ## Usage
 
@@ -158,7 +175,9 @@ internal/daemon/   aria2c discovery / spawn / attach
 internal/config/   settings (+ legacy migration)
 internal/history/  persistent categorized history
 web/               Svelte 5 + Vite frontend (embedded via go:embed)
-packaging/docker/  all-in-one image + compose example
+site/              standalone product/showcase site + media slots
+docs/              install, configuration and homelab operations
+packaging/         Docker, Swarm, Kubernetes and Unraid artifacts
 ```
 
 ## Development
@@ -167,6 +186,8 @@ packaging/docker/  all-in-one image + compose example
 make build      # web UI + binary (embedded assets)
 make backend    # Go only, reuses last web build
 make web        # frontend only
+make site       # type-check + build the standalone product site
+make site-dev   # product site development server
 make test       # unit + integration tests (integration skips without aria2c)
 make docker     # build the container image
 ```
