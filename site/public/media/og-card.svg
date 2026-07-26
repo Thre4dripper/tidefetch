@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#111316"/>
+  <g stroke="#2c3231" stroke-width="1" opacity=".7">
+    <path d="M0 70h1200M0 140h1200M0 210h1200M0 280h1200M0 350h1200M0 420h1200M0 490h1200M0 560h1200"/>
+    <path d="M80 0v630M160 0v630M240 0v630M320 0v630M400 0v630M480 0v630M560 0v630M640 0v630M720 0v630M800 0v630M880 0v630M960 0v630M1040 0v630M1120 0v630"/>
+  </g>
+  <path d="M112 98 166 129v62l-54 31-54-31v-62l54-31Zm0 25-31 18v37l31 18 31-18v-37l-31-18Z" fill="#b8ff3d"/>
+  <text x="58" y="330" fill="#f2f4f1" font-family="Manrope, sans-serif" font-size="116" font-weight="800">Tidefetch</text>
+  <text x="64" y="407" fill="#b8ff3d" font-family="Manrope, sans-serif" font-size="40" font-weight="600">aria2, beautifully controlled.</text>
+  <text x="66" y="477" fill="#8d9692" font-family="IBM Plex Mono, monospace" font-size="21">TERMINAL UI  ·  SELF-HOSTED WEB UI  ·  OPEN SOURCE</text>
+</svg>
