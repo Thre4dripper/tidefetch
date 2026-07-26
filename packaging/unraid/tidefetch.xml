@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Container version="2">
+  <Name>Tidefetch</Name>
+  <Repository>ghcr.io/thre4dripper/tidefetch:latest</Repository>
+  <Registry>https://github.com/Thre4dripper/tidefetch/pkgs/container/tidefetch</Registry>
+  <Network>bridge</Network>
+  <MyIP />
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/Thre4dripper/tidefetch/issues</Support>
+  <Project>https://github.com/Thre4dripper/tidefetch</Project>
+  <Overview>Tidefetch is a fast, self-hosted web UI for aria2 with queue control, live telemetry, history, file browsing, and advanced per-download options.</Overview>
+  <Category>Downloaders:</Category>
+  <WebUI>http://[IP]:[PORT:8210]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/Thre4dripper/tidefetch/main/packaging/unraid/tidefetch.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/Thre4dripper/tidefetch/main/site/public/favicon.svg</Icon>
+  <ExtraParams>--security-opt no-new-privileges --cap-drop ALL</ExtraParams>
+  <PostArgs />
+  <CPUset />
+  <DateInstalled>0</DateInstalled>
+  <DonateText />
+  <DonateLink />
+  <Requires />
+  <Config Name="Web UI" Target="8210" Default="8210" Mode="tcp" Description="Tidefetch web interface" Type="Port" Display="always" Required="true" Mask="false">8210</Config>
+  <Config Name="BitTorrent TCP" Target="6881" Default="6881" Mode="tcp" Description="Optional incoming BitTorrent peers" Type="Port" Display="advanced" Required="false" Mask="false">6881</Config>
+  <Config Name="BitTorrent UDP" Target="6881" Default="6881" Mode="udp" Description="Optional DHT and UDP tracker traffic" Type="Port" Display="advanced" Required="false" Mask="false">6881</Config>
+  <Config Name="Appdata" Target="/config" Default="/mnt/user/appdata/tidefetch" Mode="rw" Description="Configuration, session, and history" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/tidefetch</Config>
+  <Config Name="Downloads" Target="/downloads" Default="/mnt/user/downloads" Mode="rw" Description="Download destination" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/downloads</Config>
+  <Config Name="Web password" Target="TIDEFETCH_PASSWORD" Default="" Mode="" Description="Required password for the web interface" Type="Variable" Display="always" Required="true" Mask="true" />
+  <Config Name="Timezone" Target="TZ" Default="Etc/UTC" Mode="" Description="IANA timezone, for example America/New_York" Type="Variable" Display="advanced" Required="false" Mask="false">Etc/UTC</Config>
+</Container>
