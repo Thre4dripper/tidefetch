@@ -1,4 +1,4 @@
-// Package config loads and persists aria2tui settings.
+// Package config loads and persists tidefetch settings.
 package config
 
 import (
@@ -31,22 +31,56 @@ type Config struct {
 	// Default per-download options used to prefill the Add form.
 	DefaultSplit   string `json:"default_split"`
 	DefaultMaxConn string `json:"default_max_conn"`
+
+	// Web UI server settings (used by `tidefetch serve`).
+	WebHost string `json:"web_host,omitempty"`
+	WebPort int    `json:"web_port,omitempty"`
+	// WebPasswordHash is a bcrypt hash of the web UI password.
+	WebPasswordHash string `json:"web_password_hash,omitempty"`
 }
 
-// Dir returns the config directory (~/.config/aria2tui).
+// Dir returns the config directory (~/.config/tidefetch).
 func Dir() string {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		home, _ := os.UserHomeDir()
 		base = filepath.Join(home, ".config")
 	}
-	return filepath.Join(base, "aria2tui")
+	return filepath.Join(base, "tidefetch")
 }
 
-// DataDir returns the data directory (~/.local/share/aria2tui or platform equivalent).
+// DataDir returns the data directory (~/.local/share/tidefetch or platform equivalent).
 func DataDir() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".local", "share", "aria2tui")
+	return filepath.Join(home, ".local", "share", "tidefetch")
+}
+
+// legacyDirs returns the pre-rename (aria2tui) config and data directories.
+func legacyDirs() (cfgDir, dataDir string) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		home, _ := os.UserHomeDir()
+		base = filepath.Join(home, ".config")
+	}
+	home, _ := os.UserHomeDir()
+	return filepath.Join(base, "aria2tui"), filepath.Join(home, ".local", "share", "aria2tui")
+}
+
+// migrateLegacy moves aria2tui config/data dirs to the tidefetch locations
+// the first time the new paths are used.
+func migrateLegacy() {
+	oldCfg, oldData := legacyDirs()
+	if _, err := os.Stat(Dir()); os.IsNotExist(err) {
+		if _, err := os.Stat(oldCfg); err == nil {
+			_ = os.Rename(oldCfg, Dir())
+		}
+	}
+	if _, err := os.Stat(DataDir()); os.IsNotExist(err) {
+		if _, err := os.Stat(oldData); err == nil {
+			_ = os.MkdirAll(filepath.Dir(DataDir()), 0o755)
+			_ = os.Rename(oldData, DataDir())
+		}
+	}
 }
 
 // Path returns the config file path.
@@ -65,19 +99,22 @@ func Default() *Config {
 		HistoryLimit:   2000,
 		DefaultSplit:   "16",
 		DefaultMaxConn: "16",
+		WebHost:        "127.0.0.1",
+		WebPort:        8210,
 	}
 }
 
 func randomSecret() string {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
-		return "aria2tui"
+		return "tidefetch"
 	}
 	return hex.EncodeToString(b)
 }
 
 // Load reads the config file, creating it with defaults on first run.
 func Load() (*Config, error) {
+	migrateLegacy()
 	p := Path()
 	data, err := os.ReadFile(p)
 	if os.IsNotExist(err) {
@@ -99,6 +136,12 @@ func Load() (*Config, error) {
 	}
 	if cfg.HistoryLimit <= 0 {
 		cfg.HistoryLimit = 2000
+	}
+	if cfg.WebHost == "" {
+		cfg.WebHost = "127.0.0.1"
+	}
+	if cfg.WebPort <= 0 {
+		cfg.WebPort = 8210
 	}
 	return cfg, nil
 }
