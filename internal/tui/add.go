@@ -3,6 +3,7 @@ package tui
 import (
 	"context"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textarea"
@@ -49,8 +50,14 @@ type addModel struct {
 	height       int
 }
 
+const headerCountKey = "@header-count"
+
+func headerNameKey(n int) string       { return "@header-name-" + strconv.Itoa(n) }
+func headerCustomNameKey(n int) string { return "@header-custom-" + strconv.Itoa(n) }
+func headerValueKey(n int) string      { return "@header-value-" + strconv.Itoa(n) }
+
 func defaultAddFields(cfg *config.Config) []addField {
-	return []addField{
+	fields := []addField{
 		{key: "dir", label: "Save to", kind: kindText, value: cfg.DownloadDir},
 		{key: aria2.OptOut, label: "Filename override", kind: kindText, placeholder: "(auto)"},
 		{key: aria2.OptSplit, label: "Split (segments)", kind: kindSelect,
@@ -65,6 +72,8 @@ func defaultAddFields(cfg *config.Config) []addField {
 			choices: []string{"", "none", "prealloc", "trunc", "falloc"}, advanced: true},
 		{key: aria2.OptMaxDownloadLimit, label: "Download limit (this task)", kind: kindSelect,
 			choices: []string{"", "256K", "512K", "1M", "2M", "5M", "10M"}, advanced: true},
+		{key: aria2.OptMaxUploadLimit, label: "Upload limit (this task)", kind: kindSelect,
+			choices: []string{"", "128K", "256K", "512K", "1M", "2M", "5M"}, advanced: true},
 		{key: "max-tries", label: "Max tries", kind: kindSelect,
 			choices: []string{"", "1", "3", "5", "10", "0"}, advanced: true},
 		{key: "retry-wait", label: "Retry wait (seconds)", kind: kindSelect,
@@ -76,13 +85,27 @@ func defaultAddFields(cfg *config.Config) []addField {
 			placeholder: "(daemon default)", advanced: true},
 		{key: aria2.OptReferer, label: "Referer", kind: kindText,
 			placeholder: "https://…  (* = mirror the URL)", advanced: true},
-		{key: aria2.OptHeader, label: "Extra header", kind: kindText,
-			placeholder: "Authorization: Bearer …", advanced: true},
-		{key: aria2.OptAllProxy, label: "Proxy (this task)", kind: kindText,
-			placeholder: "http://user:pass@host:port", advanced: true},
-		{key: aria2.OptSeedRatio, label: "BT seed ratio", kind: kindSelect,
-			choices: []string{"", "0.0", "0.5", "1.0", "2.0", "5.0"}, advanced: true},
+		{key: headerCountKey, label: "Custom headers", kind: kindSelect,
+			choices: []string{"0", "1", "2", "3", "4", "5"}, value: "0", advanced: true},
 	}
+	defaultNames := []string{"Authorization", "Cookie", "Accept", "X-API-Key", "Accept-Language"}
+	for n := 1; n <= 5; n++ {
+		fields = append(fields,
+			addField{key: headerNameKey(n), label: "Header " + strconv.Itoa(n) + " name", kind: kindSelect,
+				choices: []string{"Authorization", "Cookie", "Accept", "Accept-Language", "X-API-Key", "Custom…"}, value: defaultNames[n-1], advanced: true},
+			addField{key: headerCustomNameKey(n), label: "Header " + strconv.Itoa(n) + " custom name", kind: kindText,
+				placeholder: "X-Header-Name", advanced: true},
+			addField{key: headerValueKey(n), label: "Header " + strconv.Itoa(n) + " value", kind: kindText,
+				placeholder: "value", advanced: true},
+		)
+	}
+	fields = append(fields,
+		addField{key: aria2.OptAllProxy, label: "Proxy (this task)", kind: kindText,
+			placeholder: "http://user:pass@host:port", advanced: true},
+		addField{key: aria2.OptSeedRatio, label: "BT seed ratio", kind: kindSelect,
+			choices: []string{"", "0.0", "0.5", "1.0", "2.0", "5.0"}, advanced: true},
+	)
+	return fields
 }
 
 func newAddModel(cfg *config.Config) addModel {
@@ -128,9 +151,25 @@ func (m *addModel) setSize(w, h int) {
 // visibleFields returns indices into m.fields honoring the advanced toggle.
 func (m *addModel) visibleFields() []int {
 	out := make([]int, 0, len(m.fields))
+	headerCount := 0
+	if f := m.fieldByKey(headerCountKey); f != nil {
+		headerCount, _ = strconv.Atoi(f.value)
+	}
 	for i, f := range m.fields {
 		if f.advanced && !m.showAdvanced {
 			continue
+		}
+		if strings.HasPrefix(f.key, "@header-name-") || strings.HasPrefix(f.key, "@header-custom-") || strings.HasPrefix(f.key, "@header-value-") {
+			n, _ := strconv.Atoi(f.key[strings.LastIndex(f.key, "-")+1:])
+			if n < 1 || n > headerCount {
+				continue
+			}
+			if strings.HasPrefix(f.key, "@header-custom-") {
+				name := m.fieldByKey(headerNameKey(n))
+				if name == nil || name.value != "Custom…" {
+					continue
+				}
+			}
 		}
 		out = append(out, i)
 	}
@@ -326,10 +365,35 @@ func (m *addModel) buildOptions() aria2.Options {
 	opts := aria2.Options{}
 	for _, f := range m.fields {
 		v := strings.TrimSpace(f.value)
-		if v == "" {
+		if v == "" || strings.HasPrefix(f.key, "@") {
 			continue
 		}
 		opts[f.key] = v
+	}
+	headerCount := 0
+	if f := m.fieldByKey(headerCountKey); f != nil {
+		headerCount, _ = strconv.Atoi(f.value)
+	}
+	var headers []string
+	for n := 1; n <= headerCount; n++ {
+		nameField := m.fieldByKey(headerNameKey(n))
+		customNameField := m.fieldByKey(headerCustomNameKey(n))
+		valueField := m.fieldByKey(headerValueKey(n))
+		if nameField == nil || valueField == nil {
+			continue
+		}
+		name := strings.TrimSpace(nameField.value)
+		value := strings.TrimSpace(valueField.value)
+		if name == "Custom…" && customNameField != nil {
+			name = strings.TrimSpace(customNameField.value)
+		}
+		if name == "" || value == "" {
+			continue
+		}
+		headers = append(headers, name+": "+value)
+	}
+	if len(headers) > 0 {
+		opts[aria2.OptHeader] = strings.Join(headers, "\n")
 	}
 	return opts
 }
@@ -495,17 +559,27 @@ func (a *App) viewAdd(h int) string {
 		var val string
 		switch f.kind {
 		case kindText:
+			placeholder := f.placeholder
+			if strings.HasPrefix(f.key, "@header-value-") {
+				n, _ := strconv.Atoi(f.key[strings.LastIndex(f.key, "-")+1:])
+				if nameField := m.fieldByKey(headerNameKey(n)); nameField != nil && nameField.value == "Custom" {
+					placeholder = "Header-Name: value"
+				}
+			}
 			if focused {
 				val = m.input.View()
 			} else if f.value != "" {
 				val = styleText.Render(truncate(f.value, innerW-labelW-8))
 			} else {
-				val = styleFaint.Render(f.placeholder)
+				val = styleFaint.Render(placeholder)
 			}
 		case kindSelect:
 			shown := f.value
 			if shown == "" {
 				shown = "default"
+			}
+			if f.key == headerCountKey && f.value == "0" {
+				shown = "none"
 			}
 			if f.key == aria2.OptMaxDownloadLimit && f.value != "" {
 				shown += "  = " + fmtLimit(f.value)
@@ -526,7 +600,7 @@ func (a *App) viewAdd(h int) string {
 				val += styleFaint.Render("  space toggles")
 			}
 		}
-		return mark + lbl + val
+		return mark + lbl + " " + val
 	}
 
 	extraBtnFor := func(f *addField) (string, string) {
