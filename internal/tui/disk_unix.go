@@ -1,6 +1,6 @@
 //go:build darwin || linux
 
-package ui
+package tui
 
 import "syscall"
 

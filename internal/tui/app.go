@@ -1,5 +1,5 @@
-// Package ui implements the aria2tui terminal user interface.
-package ui
+// Package tui implements the tidefetch terminal user interface.
+package tui
 
 import (
 	"context"
@@ -14,10 +14,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/turbostart/aria2c-tui/internal/config"
-	"github.com/turbostart/aria2c-tui/internal/daemon"
-	"github.com/turbostart/aria2c-tui/internal/history"
-	"github.com/turbostart/aria2c-tui/pkg/aria2"
+	"github.com/turbostart/tidefetch/internal/config"
+	"github.com/turbostart/tidefetch/internal/daemon"
+	"github.com/turbostart/tidefetch/internal/history"
+	"github.com/turbostart/tidefetch/pkg/aria2"
 )
 
 // View identifies the active screen.
@@ -869,7 +869,7 @@ func (a *App) overlay(modal string, specs []hitspec) string {
 }
 
 func (a *App) renderHeader() string {
-	logo := styleLogo.Render("⬡ aria2tui")
+	logo := styleLogo.Render("⬡ tidefetch")
 
 	down := styleDownArr.Render("▼ ") + styleText.Render(humanSpeed(a.stat.DownloadSpeed.Int()))
 	up := styleUpArr.Render("▲ ") + styleText.Render(humanSpeed(a.stat.UploadSpeed.Int()))

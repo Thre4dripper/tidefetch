@@ -1,4 +1,4 @@
-package ui
+package tui
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/turbostart/aria2c-tui/pkg/aria2"
+	"github.com/turbostart/tidefetch/pkg/aria2"
 )
 
 // --- messages ---------------------------------------------------------------

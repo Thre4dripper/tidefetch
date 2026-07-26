@@ -1,4 +1,4 @@
-package ui
+package tui
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/turbostart/aria2c-tui/pkg/aria2"
+	"github.com/turbostart/tidefetch/pkg/aria2"
 )
 
 // settingsModel edits daemon-wide aria2 options live over RPC.
@@ -232,7 +232,7 @@ func (a *App) viewSettings(h int) string {
 
 	fmt.Fprint(&b, "\n", styleDim.Render(" RPC endpoint: "), styleText.Render(a.rpcURL))
 	if a.spawned {
-		b.WriteString(styleDim.Render("  (daemon spawned by aria2tui)"))
+		b.WriteString(styleDim.Render("  (daemon spawned by tidefetch)"))
 	}
 	return b.String()
 }

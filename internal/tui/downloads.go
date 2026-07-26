@@ -1,4 +1,4 @@
-package ui
+package tui
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/turbostart/aria2c-tui/pkg/aria2"
+	"github.com/turbostart/tidefetch/pkg/aria2"
 )
 
 // updateDownloads handles keys on the main list (and app-global keys).
@@ -356,7 +356,7 @@ func (a *App) emptyState(w, h int) string {
 		return styleKey.Render(padLeft(k, 8)) + "   " + styleDesc.Render(d)
 	}
 	tut := lipgloss.JoinVertical(lipgloss.Left,
-		styleLogo.Render("⬡ aria2tui")+styleDim.Render("  nothing downloading yet"),
+		styleLogo.Render("⬡ tidefetch")+styleDim.Render("  nothing downloading yet"),
 		"",
 		row("a", "add downloads — URLs, magnet links, .torrent files"),
 		row("ctrl+o", "…browse for a save folder inside the add form"),

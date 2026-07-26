@@ -1,4 +1,4 @@
-package ui
+package tui
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/turbostart/aria2c-tui/internal/config"
-	"github.com/turbostart/aria2c-tui/pkg/aria2"
+	"github.com/turbostart/tidefetch/internal/config"
+	"github.com/turbostart/tidefetch/pkg/aria2"
 )
 
 // fieldKind distinguishes how an option row edits.
