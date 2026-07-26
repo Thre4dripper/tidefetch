@@ -1,0 +1,6 @@
+//go:build !darwin && !linux
+
+package server
+
+// diskUsage is unsupported on this platform.
+func diskUsage(path string) (free, total int64, err error) { return 0, 0, nil }
