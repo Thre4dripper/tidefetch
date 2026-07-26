@@ -1,5 +1,7 @@
 # binary
+/tidefetch
 /aria2tui
+web/node_modules/
 
 # go
 *.test

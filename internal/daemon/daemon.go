@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/turbostart/aria2c-tui/internal/config"
-	"github.com/turbostart/aria2c-tui/pkg/aria2"
+	"github.com/turbostart/tidefetch/internal/config"
+	"github.com/turbostart/tidefetch/pkg/aria2"
 )
 
 // Result describes how the RPC connection was established.

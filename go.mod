@@ -1,4 +1,4 @@
-module github.com/turbostart/aria2c-tui
+module github.com/turbostart/tidefetch
 
 go 1.26.1
 
