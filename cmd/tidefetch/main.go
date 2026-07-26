@@ -154,9 +154,13 @@ func runServe(args []string) {
 	fs, sf := serveFlags()
 	_ = fs.Parse(args)
 
-	// Container-friendly: allow the password via environment variable.
+	// Container-friendly: allow a direct value or a mounted secret file.
 	if sf.Password == "" {
-		sf.Password = os.Getenv("TIDEFETCH_PASSWORD")
+		password, err := passwordFromEnvironment()
+		if err != nil {
+			fatal("read web password: %v", err)
+		}
+		sf.Password = password
 	}
 
 	cfg, err := config.Load()
@@ -196,6 +200,21 @@ func runServe(args []string) {
 	if err := srv.Run(ctx); err != nil {
 		fatal("%v", err)
 	}
+}
+
+func passwordFromEnvironment() (string, error) {
+	if password := os.Getenv("TIDEFETCH_PASSWORD"); password != "" {
+		return password, nil
+	}
+	path := os.Getenv("TIDEFETCH_PASSWORD_FILE")
+	if path == "" {
+		return "", nil
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(data)), nil
 }
 
 func openHistory(cfg *config.Config) (*history.Store, error) {
