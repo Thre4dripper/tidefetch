@@ -2,7 +2,7 @@ BINARY  := tidefetch
 VERSION := 0.2.0
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
-.PHONY: build backend web run serve test vet fmt install docker clean
+.PHONY: build backend web site site-dev docs-check run serve test vet fmt install docker clean
 
 ## build: web UI + binary with embedded assets
 build: web backend
@@ -14,6 +14,18 @@ backend:
 ## web: compile the Svelte frontend into web/dist
 web:
 	cd web && npm install --no-fund --no-audit && npm run build
+
+## site: compile the standalone product/showcase site
+site:
+	cd site && npm install --no-fund --no-audit && npm run check && npm run build
+
+## site-dev: run the product site development server
+site-dev:
+	cd site && npm run dev
+
+## docs-check: verify every relative Markdown link resolves
+docs-check:
+	node scripts/check-doc-links.mjs
 
 run: backend
 	./$(BINARY)
@@ -39,4 +51,4 @@ docker:
 
 clean:
 	rm -f $(BINARY)
-	rm -rf web/node_modules
+	rm -rf web/node_modules site/node_modules site/dist

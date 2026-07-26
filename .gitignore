@@ -2,6 +2,9 @@
 /tidefetch
 /aria2tui
 web/node_modules/
+site/node_modules/
+site/dist/
+.DS_Store
 
 # go
 *.test
