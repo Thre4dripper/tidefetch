@@ -4,6 +4,7 @@
   import Login from './lib/components/Login.svelte';
   import Sidebar from './lib/components/Sidebar.svelte';
   import Topbar from './lib/components/Topbar.svelte';
+  import Metrics from './lib/components/Metrics.svelte';
   import TaskList from './lib/components/TaskList.svelte';
   import TaskDetail from './lib/components/TaskDetail.svelte';
   import HistoryView from './lib/components/HistoryView.svelte';
@@ -28,6 +29,7 @@
     <main>
       <Topbar />
       {#if store.view === 'downloads'}
+        <Metrics />
         <TaskList />
       {:else}
         <HistoryView />

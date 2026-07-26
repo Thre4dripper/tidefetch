@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { points, color = '#34d8c3', height = 34 }: { points: number[]; color?: string; height?: number } = $props();
+  let { points, color = '#5ed8e7', height = 34 }: { points: number[]; color?: string; height?: number } = $props();
 
   let canvas: HTMLCanvasElement;
 

@@ -1,21 +1,22 @@
 /* ── tidefetch design system ─────────────────────────────────────────── */
 :root {
-  --bg: #0a0e14;
-  --bg-raise: #0f141d;
-  --panel: rgba(255, 255, 255, 0.03);
-  --panel-solid: #111826;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --text: #e6edf3;
-  --text-dim: #8b98a9;
-  --text-faint: #566072;
-  --accent: #34d8c3;
-  --accent-2: #3b82f6;
-  --grad: linear-gradient(135deg, var(--accent), var(--accent-2));
-  --ok: #4ade80;
-  --warn: #fbbf24;
-  --err: #f87171;
-  --up: #c084fc;
+  --bg: #101316;
+  --bg-raise: #15181c;
+  --panel: rgba(255, 255, 255, 0.028);
+  --panel-solid: #191d21;
+  --border: #262b30;
+  --border-strong: #343a3f;
+  --text: #e6ebe7;
+  --text-dim: #8b938e;
+  --text-faint: #5c6560;
+  --accent: #5ed8e7;
+  --accent-2: #8c82ff;
+  --signal: #b8ff3d;
+  --grad: linear-gradient(135deg, var(--accent), var(--signal));
+  --ok: #b8ff3d;
+  --warn: #f0c445;
+  --err: #ff795f;
+  --up: #8c82ff;
   --radius: 12px;
   --radius-sm: 8px;
   --font: ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI Variable", "Segoe UI", Inter, Roboto, sans-serif;
@@ -28,8 +29,8 @@ html, body {
   margin: 0;
   height: 100%;
   background:
-    radial-gradient(1100px 500px at 85% -10%, rgba(59, 130, 246, 0.10), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(52, 216, 195, 0.07), transparent 60%),
+    radial-gradient(1100px 500px at 85% -10%, rgba(94, 216, 231, 0.055), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(184, 255, 61, 0.03), transparent 60%),
     var(--bg);
   color: var(--text);
   font-family: var(--font);
@@ -39,7 +40,7 @@ html, body {
 
 #app { height: 100%; }
 
-::selection { background: rgba(52, 216, 195, 0.25); }
+::selection { background: rgba(94, 216, 231, 0.28); }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.10); border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
@@ -91,7 +92,7 @@ input[type='checkbox'] {
 }
 
 :focus-visible {
-  outline: 2px solid rgba(52, 216, 195, 0.55);
+  outline: 2px solid rgba(94, 216, 231, 0.55);
   outline-offset: 1px;
 }
 
@@ -111,14 +112,14 @@ input[type='checkbox'] {
 .btn:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--border-strong); }
 .btn:active { transform: translateY(1px); }
 .btn.primary {
-  background: var(--grad);
+  background: var(--signal);
   border: none;
-  color: #06121a;
-  font-weight: 650;
+  color: #10150a;
+  font-weight: 700;
 }
-.btn.primary:hover { filter: brightness(1.1); }
-.btn.danger { color: var(--err); border-color: rgba(248, 113, 113, 0.25); }
-.btn.danger:hover { background: rgba(248, 113, 113, 0.1); }
+.btn.primary:hover { filter: brightness(1.07); }
+.btn.danger { color: var(--err); border-color: rgba(255, 121, 95, 0.25); }
+.btn.danger:hover { background: rgba(255, 121, 95, 0.1); }
 .btn.sm { padding: 5px 10px; font-size: 12.5px; }
 .btn.icon {
   width: 28px;
@@ -151,12 +152,21 @@ input[type='checkbox'] {
   border: 1px solid;
   white-space: nowrap;
 }
-.badge.active   { color: var(--accent); border-color: rgba(52,216,195,.35); background: rgba(52,216,195,.08); }
-.badge.waiting  { color: var(--warn); border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.08); }
+.badge.active   { color: var(--accent); border-color: rgba(94,216,231,.35); background: rgba(94,216,231,.08); }
+.badge.waiting  { color: var(--warn); border-color: rgba(240,196,69,.35); background: rgba(240,196,69,.08); }
 .badge.paused   { color: var(--text-dim); border-color: var(--border-strong); background: rgba(255,255,255,.04); }
-.badge.complete { color: var(--ok); border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.08); }
-.badge.error    { color: var(--err); border-color: rgba(248,113,113,.35); background: rgba(248,113,113,.08); }
+.badge.complete { color: var(--ok); border-color: rgba(184,255,61,.35); background: rgba(184,255,61,.08); }
+.badge.error    { color: var(--err); border-color: rgba(255,121,95,.35); background: rgba(255,121,95,.08); }
 .badge.removed  { color: var(--text-faint); border-color: var(--border); background: transparent; }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
 
 .mono { font-family: var(--mono); }
 .dim { color: var(--text-dim); }

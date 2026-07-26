@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.2.0",
   "type": "module",
+  "dependencies": {
+    "@lucide/svelte": "^1.27.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

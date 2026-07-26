@@ -8,11 +8,20 @@
   let scrollTop = $state(0);
   let viewH = $state(600);
 
-  const ROW = $derived(store.prefs.compact ? 66 : 86); // px per row incl. gap
+  const ROW = $derived(store.prefs.compact ? 62 : 78); // px per row incl. gap
   const list = $derived(store.filtered);
   const start = $derived(Math.max(0, Math.floor(scrollTop / ROW) - OVERSCAN));
   const end = $derived(Math.min(list.length, Math.ceil((scrollTop + viewH) / ROW) + OVERSCAN));
   const visible = $derived(list.slice(start, end));
+
+  const heading = $derived.by(() => {
+    switch (store.filter) {
+      case 'active': return 'ACTIVE DOWNLOADS';
+      case 'waiting': return 'QUEUED DOWNLOADS';
+      case 'stopped': return 'FINISHED DOWNLOADS';
+      default: return 'ALL DOWNLOADS';
+    }
+  });
 
   function onScroll() {
     if (viewport) scrollTop = viewport.scrollTop;
@@ -27,6 +36,12 @@
     return () => ro.disconnect();
   });
 </script>
+
+<div class="listhead">
+  <span class="eyebrow">{heading} · {list.length}</span>
+  <span class="eyebrow">SPEED</span>
+  <span class="eyebrow acts">STATUS</span>
+</div>
 
 <div class="viewport" bind:this={viewport} onscroll={onScroll}>
   {#if list.length === 0}
@@ -53,16 +68,23 @@
 </div>
 
 <style>
+  .listhead {
+    display: grid;
+    grid-template-columns: 1fr auto 66px;
+    gap: 14px;
+    padding: 16px 32px 8px 30px;
+  }
+  .listhead .acts { text-align: right; }
   .viewport {
     flex: 1;
     overflow-y: auto;
-    padding: 4px 12px 16px;
+    padding: 0 18px 18px;
   }
   .canvas { position: relative; }
   .window {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     will-change: transform;
   }
   .empty {
