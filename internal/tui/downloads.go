@@ -129,6 +129,11 @@ func (a *App) updateDownloads(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if st := a.selected(); st != nil {
 			s := *st
 			client := a.client
+			if !a.cfg.ConfirmRemove {
+				return a, doRPC("removed "+truncate(s.Name(), 40), func(ctx context.Context) error {
+					return removeAny(ctx, client, s)
+				})
+			}
 			a.confirmAction("Remove download?", truncate(s.Name(), 60), func() tea.Cmd {
 				return doRPC("removed "+truncate(s.Name(), 40), func(ctx context.Context) error {
 					return removeAny(ctx, client, s)
@@ -319,8 +324,12 @@ func collectURIs(st aria2.Status) []string {
 // sidebarW is the width of the right info panel.
 const sidebarW = 46
 
-// rowH is the height of one download card.
-const rowH = 3
+func (a *App) rowHeight() int {
+	if a.cfg.CompactRows {
+		return 2
+	}
+	return 3
+}
 
 // viewDownloads renders the main list plus the optional side panel.
 func (a *App) viewDownloads(h int) string {
@@ -370,6 +379,7 @@ func (a *App) emptyState(w, h int) string {
 
 // renderList paints the download cards inside a titled box and records hitboxes.
 func (a *App) renderList(w, h int) string {
+	rowH := a.rowHeight()
 	innerW := w - 4
 	listH := h - 2 // box borders
 	visible := listH / rowH
@@ -513,6 +523,9 @@ func (a *App) renderRow(st aria2.Status, selected bool, w int) string {
 		line1 = styleRowSel.Width(w).Render(line1)
 		line2 = styleRowSel.Width(w).Render(line2)
 		line3 = styleRowSel.Width(w).Render(line3)
+	}
+	if a.cfg.CompactRows {
+		return line1 + "\n" + line2
 	}
 	return line1 + "\n" + line2 + "\n" + line3
 }

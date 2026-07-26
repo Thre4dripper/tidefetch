@@ -122,7 +122,7 @@ func New(cfg *config.Config, hist *history.Store, res *daemon.Result, initialAdd
 		view:        viewDownloads,
 		initialAdds: initialAdds,
 		gidHist:     map[string][]float64{},
-		sidebar:     true,
+		sidebar:     cfg.Sidebar,
 		startedAt:   time.Now(),
 	}
 	a.add = newAddModel(cfg)
