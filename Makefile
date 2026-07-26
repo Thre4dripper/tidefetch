@@ -1,12 +1,25 @@
-BINARY := aria2tui
+BINARY  := tidefetch
+VERSION := 0.2.0
+LDFLAGS := -s -w -X main.version=$(VERSION)
 
-.PHONY: build run test vet fmt install clean
+.PHONY: build backend web run serve test vet fmt install docker clean
 
-build:
-	go build -o $(BINARY) .
+## build: web UI + binary with embedded assets
+build: web backend
 
-run: build
+## backend: compile the Go binary only (uses last built web/dist)
+backend:
+	go build -trimpath -ldflags "$(LDFLAGS)" -o $(BINARY) ./cmd/$(BINARY)
+
+## web: compile the Svelte frontend into web/dist
+web:
+	cd web && npm install --no-fund --no-audit && npm run build
+
+run: backend
 	./$(BINARY)
+
+serve: backend
+	./$(BINARY) serve
 
 test:
 	go test ./...
@@ -16,9 +29,14 @@ vet:
 
 fmt:
 	gofmt -w .
+	cd web && npx svelte-check --threshold error 2>/dev/null || true
 
-install:
-	go install .
+install: build
+	go install -trimpath -ldflags "$(LDFLAGS)" ./cmd/$(BINARY)
+
+docker:
+	docker build -f packaging/docker/Dockerfile -t tidefetch:$(VERSION) .
 
 clean:
 	rm -f $(BINARY)
+	rm -rf web/node_modules
