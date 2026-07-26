@@ -340,14 +340,18 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.active, a.waiting, a.stopped = msg.active, msg.waiting, msg.stopped
 		a.speedHist = appendSample(a.speedHist, float64(msg.stat.DownloadSpeed))
 		a.upHist = appendSample(a.upHist, float64(msg.stat.UploadSpeed))
-		// Per-task speed history: track active + waiting, drop the rest.
+		// Per-task lifetime speed history: sample while runnable, freeze when
+		// stopped, and only discard it after aria2 removes the task entirely.
 		keep := map[string]bool{}
 		for _, st := range msg.active {
-			a.gidHist[st.GID] = appendSample(a.gidHist[st.GID], float64(st.DownloadSpeed))
+			a.gidHist[st.GID] = appendTaskSample(a.gidHist[st.GID], float64(st.DownloadSpeed))
 			keep[st.GID] = true
 		}
 		for _, st := range msg.waiting {
-			a.gidHist[st.GID] = appendSample(a.gidHist[st.GID], 0)
+			a.gidHist[st.GID] = appendTaskSample(a.gidHist[st.GID], 0)
+			keep[st.GID] = true
+		}
+		for _, st := range msg.stopped {
 			keep[st.GID] = true
 		}
 		for gid := range a.gidHist {
@@ -668,6 +672,16 @@ func appendSample(s []float64, v float64) []float64 {
 	s = append(s, v)
 	if len(s) > 240 {
 		s = s[len(s)-240:]
+	}
+	return s
+}
+
+// appendTaskSample keeps a longer bounded history for per-download lifetime
+// charts. At the default poll rate this represents roughly 14 minutes.
+func appendTaskSample(s []float64, v float64) []float64 {
+	s = append(s, v)
+	if len(s) > 1200 {
+		s = s[len(s)-1200:]
 	}
 	return s
 }

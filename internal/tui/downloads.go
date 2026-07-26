@@ -474,8 +474,8 @@ func (a *App) renderRow(st aria2.Status, selected bool, w int) string {
 		tail = "queued"
 	}
 	graph := ""
-	if st.Status == aria2.StatusActive && !seeding {
-		graph = " " + styleGraphTask.Render(sparkline(a.gidHist[st.GID], 14))
+	if hist := a.gidHist[st.GID]; len(hist) > 1 {
+		graph = " " + styleGraphTask.Render(sparkline(downsampleHistory(hist, 14), 14))
 	}
 	right := styleDim.Render(sizes) + "  " + stStyle.Render(tail) + graph
 	gaugeW := w - 4 - 7 - lipgloss.Width(right) - 4
@@ -529,13 +529,18 @@ func (a *App) renderSidebar(w, h int) string {
 			styleTitle.Render(truncate(st.Name(), inner)),
 			stStyle.Bold(true).Render(label) + styleDim.Render(" · "+humanBytes(st.TotalLength.Int())),
 		}
-		if st.Status == aria2.StatusActive {
-			for _, gl := range brailleGraph(a.gidHist[st.GID], inner, 4, 0) {
+		if hist := a.gidHist[st.GID]; len(hist) > 1 {
+			series := downsampleHistory(hist, inner*2)
+			for _, gl := range brailleGraph(series, inner, 4, 0) {
 				lines = append(lines, styleGraphTask.Render(gl))
 			}
+			speedLabel := "▼ " + humanSpeed(st.DownloadSpeed.Int())
+			if st.Status != aria2.StatusActive {
+				speedLabel = "final"
+			}
 			lines = append(lines,
-				styleDownArr.Render("▼ ")+styleText.Render(humanSpeed(st.DownloadSpeed.Int()))+
-					styleDim.Render("  peak "+humanSpeed(int64(peakOf(a.gidHist[st.GID])))),
+				styleDownArr.Render(speedLabel)+
+					styleDim.Render("  · peak "+humanSpeed(int64(peakOf(hist)))),
 			)
 		} else {
 			lines = append(lines, "")

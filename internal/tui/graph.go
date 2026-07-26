@@ -6,6 +6,33 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// downsampleHistory bucket-averages an entire series into at most n points.
+// Unlike simply taking the tail, this preserves the shape of a task's full
+// lifetime after it completes.
+func downsampleHistory(samples []float64, n int) []float64 {
+	if n < 1 || len(samples) == 0 {
+		return nil
+	}
+	if len(samples) <= n {
+		out := make([]float64, len(samples))
+		copy(out, samples)
+		return out
+	}
+	out := make([]float64, n)
+	for i := 0; i < n; i++ {
+		lo := i * len(samples) / n
+		hi := (i + 1) * len(samples) / n
+		if hi <= lo {
+			hi = lo + 1
+		}
+		for _, value := range samples[lo:hi] {
+			out[i] += value
+		}
+		out[i] /= float64(hi - lo)
+	}
+	return out
+}
+
 // brailleGraph renders samples as a btop-style braille chart of w×h cells.
 // Each cell packs 2 columns × 4 rows of dots. The most recent sample is at
 // the right edge. maxVal <= 0 auto-scales to the window maximum.

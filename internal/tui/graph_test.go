@@ -33,6 +33,20 @@ func TestBrailleGraph(t *testing.T) {
 	}
 }
 
+func TestDownsampleHistoryUsesWholeSeries(t *testing.T) {
+	input := []float64{1, 3, 10, 14, 100, 104}
+	got := downsampleHistory(input, 3)
+	want := []float64{2, 12, 102}
+	if len(got) != len(want) {
+		t.Fatalf("len = %d, want %d", len(got), len(want))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("point %d = %v, want %v", i, got[i], want[i])
+		}
+	}
+}
+
 func TestTitledBox(t *testing.T) {
 	box := titledBox("Test", []string{"hello", "world"}, 20, styleBoxBorder, styleBoxTitle)
 	lines := strings.Split(box, "\n")
