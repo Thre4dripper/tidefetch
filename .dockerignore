@@ -1,0 +1,7 @@
+.git
+tidefetch
+aria2tui
+web/node_modules
+web/dist
+*.md
+!README.md

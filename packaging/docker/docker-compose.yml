@@ -1,0 +1,19 @@
+services:
+  tidefetch:
+    build:
+      context: ../..
+      dockerfile: packaging/docker/Dockerfile
+    # or, once published:
+    # image: ghcr.io/turbostart/tidefetch:latest
+    container_name: tidefetch
+    restart: unless-stopped
+    ports:
+      - "8210:8210"        # web UI
+      - "6881:6881"        # BitTorrent TCP (optional)
+      - "6881:6881/udp"    # BitTorrent DHT/UDP (optional)
+    environment:
+      # Required for non-loopback binds: the web UI password.
+      TIDEFETCH_PASSWORD: change-me
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
