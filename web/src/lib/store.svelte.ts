@@ -29,7 +29,10 @@ class Store {
   onboarding = $state(false);
 
   tasks = $state<Task[]>([]);
-  stat = $state<Stat>({ downSpeed: 0, upSpeed: 0, numActive: 0, numWaiting: 0, numStopped: 0 });
+  stat = $state<Stat>({
+    downSpeed: 0, upSpeed: 0, numActive: 0, numWaiting: 0, numStopped: 0,
+    sessionDown: 0, sessionUp: 0, diskFree: 0, diskTotal: 0
+  });
 
   filter = $state<Filter>('all');
   search = $state('');

@@ -74,6 +74,13 @@ type Stat struct {
 	NumActive  int64 `json:"numActive"`
 	NumWaiting int64 `json:"numWaiting"`
 	NumStopped int64 `json:"numStopped"`
+	// SessionDown/SessionUp are bytes moved since this server started,
+	// integrated from speed samples between polls.
+	SessionDown int64 `json:"sessionDown"`
+	SessionUp   int64 `json:"sessionUp"`
+	// DiskFree/DiskTotal describe the filesystem of the download directory.
+	DiskFree  int64 `json:"diskFree"`
+	DiskTotal int64 `json:"diskTotal"`
 }
 
 type wsMsg struct {
@@ -100,6 +107,10 @@ type hub struct {
 	stat      Stat
 	aria2Ver  string
 	speeds    map[string][]int64 // per-gid lifetime speed samples
+
+	sessionDown float64
+	sessionUp   float64
+	lastPoll    time.Time
 
 	clients   map[*wsClient]struct{}
 	clientsMu sync.Mutex
@@ -264,6 +275,24 @@ func (h *hub) poll(ctx context.Context) {
 		NumWaiting: gstat.NumWaiting.Int(),
 		NumStopped: gstat.NumStopped.Int(),
 	}
+	if free, total, err := diskUsage(h.cfg.DownloadDir); err == nil {
+		stat.DiskFree, stat.DiskTotal = free, total
+	}
+
+	// Integrate transfer speed into session byte counters.
+	now := time.Now()
+	h.mu.Lock()
+	if !h.lastPoll.IsZero() {
+		dt := now.Sub(h.lastPoll).Seconds()
+		if dt > 0 && dt < 30 {
+			h.sessionDown += float64(stat.DownSpeed) * dt
+			h.sessionUp += float64(stat.UpSpeed) * dt
+		}
+	}
+	h.lastPoll = now
+	stat.SessionDown = int64(h.sessionDown)
+	stat.SessionUp = int64(h.sessionUp)
+	h.mu.Unlock()
 
 	h.recordHistory(all)
 

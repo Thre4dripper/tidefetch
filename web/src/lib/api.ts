@@ -28,6 +28,10 @@ export interface Stat {
   numActive: number;
   numWaiting: number;
   numStopped: number;
+  sessionDown: number;
+  sessionUp: number;
+  diskFree: number;
+  diskTotal: number;
 }
 
 export interface StatePayload {
