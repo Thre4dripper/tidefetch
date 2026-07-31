@@ -61,10 +61,22 @@ limiting, strict CSP, same-origin guards.
 
 ## Install
 
-The repository does not have a tagged binary or registry release yet. The
-current source and local container builds work now. See the
-[installation guide](docs/installation.md) for release archives, Go,
-Homebrew, Winget, Scoop, Chocolatey, AUR, Nix, DEB, and RPM status.
+The repository does not have a tagged release yet, so the install script has
+nothing to download until `v0.1.0` ships. Building from source works today.
+
+Once a release is published:
+
+```sh
+# macOS, Linux, FreeBSD
+curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh
+
+# Windows (PowerShell)
+irm https://thre4dripper.github.io/tidefetch/install.ps1 | iex
+```
+
+The script detects your platform, verifies the download against the release
+checksums and needs no runtime. Homebrew, Docker, Helm and `go install` are also
+supported — see the [installation guide](docs/installation.md).
 
 Native builds require [aria2](https://aria2.github.io) (`brew install aria2` /
 `apt install aria2`), Go 1.26.1, and Node 20+.

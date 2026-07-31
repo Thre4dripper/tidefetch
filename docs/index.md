@@ -1,72 +1,84 @@
 # Tidefetch documentation
 
-Tidefetch is a terminal UI and self-hosted web UI for the aria2 download
-engine. It can manage a local aria2 process automatically or connect to an
-existing daemon over JSON-RPC.
+Tidefetch is a terminal UI for the [aria2](https://aria2.github.io) download
+engine, with an optional self-hosted web UI. One static binary, no runtime,
+no cloud account.
 
 ## Start here
 
 | Goal | Guide |
 | --- | --- |
-| Install on macOS, Linux, or Windows | [Installation](installation.md) |
-| Understand flags, files, and authentication | [Configuration](configuration.md) |
-| Run on a NAS or home server | [Homelab operations](homelab.md) |
-| Put Tidefetch behind HTTPS | [Reverse proxies](reverse-proxy.md) |
-| Diagnose a failed deployment | [Troubleshooting](troubleshooting.md) |
-| Run with Docker or Podman | [Docker](deployment/docker.md) |
-| Deploy a Docker Swarm stack | [Docker Swarm](deployment/swarm.md) |
+| Install on macOS, Linux, Windows or Docker | [Installation](installation.md) |
+| Understand flags, files and authentication | [Configuration](configuration.md) |
+| Know what to put on a volume | [Data & persistence](data-and-persistence.md) |
+| Run it on a NAS or home server | [Homelab operations](homelab.md) |
+| Put the web UI behind HTTPS | [Reverse proxies](reverse-proxy.md) |
+| Diagnose a problem | [Troubleshooting](troubleshooting.md) |
+| Deploy with Docker or Podman | [Docker](deployment/docker.md) |
+| Deploy a Swarm stack | [Docker Swarm](deployment/swarm.md) |
 | Deploy to Kubernetes or k3s | [Kubernetes](deployment/kubernetes.md) |
 | Install on Unraid | [Unraid](deployment/unraid.md) |
+| Cut and publish a release | [Publishing](publishing.md) |
 
-## Fastest current installation
-
-The repository does not have a tagged binary or registry release yet. The
-commands below build the current checkout and are usable now.
-
-### Container
+## Quick start
 
 ```sh
-git clone https://github.com/Thre4dripper/tidefetch.git
-cd tidefetch
-TIDEFETCH_PASSWORD='replace-this-password' \
-  docker compose -f packaging/docker/docker-compose.yml up -d --build
+brew install thre4dripper/tap/tidefetch   # macOS / Linuxbrew
+sudo apt install tidefetch                # Debian / Ubuntu
+docker run -d -p 8210:8210 thre4dripper/tidefetch
 ```
 
-Open `http://<server-ip>:8210`.
-
-### Native
-
-Install aria2, Go 1.26.1, and Node.js 20 or newer, then:
+Then:
 
 ```sh
-git clone https://github.com/Thre4dripper/tidefetch.git
-cd tidefetch
-make build
-./tidefetch doctor
-./tidefetch
+tidefetch            # open the terminal UI
+tidefetch doctor     # verify aria2, config and paths
+tidefetch serve      # optional web UI on :8210
 ```
+
+## The two interfaces
+
+**Terminal UI** — the primary interface. Keyboard-first with full mouse
+support, braille throughput graphs, disk gauges, a piece map, file browser and
+the complete aria2 settings surface. It runs anywhere a shell does: over SSH,
+inside tmux, on a Raspberry Pi.
+
+**Web UI** — `tidefetch serve`. The same queue, history and settings rendered
+for a browser, for when downloads live on a headless machine. WebSocket push,
+virtualized lists, bcrypt auth and a strict CSP.
+
+Both talk to the same aria2 daemon and share one config and history file.
 
 ## Architecture
 
 ```text
-Browser ──HTTP/WebSocket──> Tidefetch broker ──private JSON-RPC──> aria2
-                                  │                         │
-                                  ├── auth + API            ├── transfers
-                                  ├── history               └── session state
-                                  └── embedded web app
+Terminal UI ─┐
+             ├──> Tidefetch ──private JSON-RPC──> aria2 ──> your storage
+Browser ─────┘     (auth, history, API)
 ```
 
-The browser never receives the aria2 RPC secret. In the all-in-one container,
-RPC stays on loopback and only port 8210 is required for the dashboard. Expose
-the optional BitTorrent TCP/UDP ports when accepting inbound peers matters.
+The aria2 RPC secret never reaches the browser. In the container image RPC
+stays on loopback and only port 8210 is exposed.
+
+## Core concepts
+
+- **Download directory** — where finished files land. Set globally in config or
+  per-task when adding.
+- **Session** — aria2 persists the queue to disk, so downloads survive restarts
+  of both the UI and the daemon.
+- **History** — completed and failed transfers are recorded with IDM-style
+  categories, searchable and re-downloadable.
+- **Daemon mode** — Tidefetch spawns a local `aria2c` automatically, or attaches
+  to an existing one with `-url` and `-secret`.
 
 ## Support baseline
 
-- Linux: primary server and container platform
-- macOS: native TUI/web server and source builds
-- Windows: native builds are supported by Go; WSL2 or Docker Desktop is the
-  most predictable self-hosted path
-- Browsers: current Chrome, Firefox, Safari, and Edge
-- aria2: the system package is used natively; Alpine provides it in the image
+- **Linux** — primary target for servers and containers
+- **macOS** — native TUI and web server
+- **Windows** — native binary; Windows Terminal recommended
+- **aria2** — 1.36 or newer
+- **Browsers** — current Chrome, Firefox, Safari and Edge
 
-Tidefetch is independent of and not affiliated with the aria2 project.
+Tidefetch is an independent project and is not affiliated with aria2. Tidefetch
+is MIT licensed; aria2 is GPL-2.0-or-later and is used over JSON-RPC as a
+separate process.
