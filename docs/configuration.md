@@ -101,6 +101,7 @@ Example `config.json`:
   "download_dir": "/srv/downloads",
   "poll_ms": 700,
   "history_limit": 2000,
+  "theme": "surge",
   "sidebar": true,
   "compact_rows": false,
   "confirm_remove": true,
@@ -115,6 +116,31 @@ Example `config.json`:
 Do not copy another installation's `secret` or `web_password_hash`. Let
 Tidefetch generate the RPC secret and set the web password through the CLI or
 Security settings. Password hashes are written automatically.
+
+## Themes
+
+The terminal UI ships with 13 palettes. Change one under
+**Settings → Interface → Colour theme** — it applies instantly and is saved to
+`theme` in the config.
+
+| Value | Theme |
+| --- | --- |
+| `surge` | Surge (default) |
+| `tide` | Tide |
+| `tokyonight` | Tokyo Night |
+| `catppuccin` | Catppuccin Mocha |
+| `gruvbox` | Gruvbox Dark |
+| `nord` | Nord |
+| `dracula` | Dracula |
+| `rosepine` | Rosé Pine |
+| `everforest` | Everforest |
+| `kanagawa` | Kanagawa |
+| `solarized` | Solarized Dark |
+| `ayu` | Ayu Dark |
+| `monokai` | Monokai Pro |
+
+An unknown value falls back to `surge`. Themes require a terminal with
+truecolor support; most modern terminals qualify.
 
 ## Local daemon lifecycle
 

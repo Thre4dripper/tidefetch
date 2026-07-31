@@ -99,6 +99,60 @@ curl -I http://127.0.0.1:8210/
 Compose ignores `deploy.replicas`, but modern Compose applies supported
 resource limits. Tidefetch is stateful and should have one replica.
 
+## Bare metal with systemd
+
+Containers are the recommended path, but a native service is a good fit for a
+Raspberry Pi, a small VPS, or any host where you would rather not run Docker.
+Only `tidefetch serve` needs a service — the TUI is an interactive command and
+should never be run under systemd.
+
+Install the binary, then create a dedicated system user and the directories the
+unit expects:
+
+```sh
+curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sudo sh
+sudo useradd --system --home-dir /var/lib/tidefetch --shell /usr/sbin/nologin tidefetch
+sudo mkdir -p /srv/downloads /etc/tidefetch
+sudo chown tidefetch:tidefetch /srv/downloads
+```
+
+Store the web password in a file that only root can read. The unit passes it in
+through `TIDEFETCH_PASSWORD_FILE`, so it never appears in the unit or in `ps`:
+
+```sh
+openssl rand -base64 36 | sudo tee /etc/tidefetch/password >/dev/null
+sudo chmod 600 /etc/tidefetch/password
+sudo chown tidefetch:tidefetch /etc/tidefetch/password
+```
+
+Install the unit from the repository and start it:
+
+```sh
+sudo curl -fsSL -o /etc/systemd/system/tidefetch.service \
+  https://raw.githubusercontent.com/Thre4dripper/tidefetch/main/packaging/systemd/tidefetch.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now tidefetch
+systemctl status tidefetch
+```
+
+The unit runs with `ProtectSystem=strict`, `NoNewPrivileges` and a restricted
+writable set, so the service can only write to `/srv/downloads` and its own
+`StateDirectory` at `/var/lib/tidefetch`. Adjust `ExecStart` and
+`ReadWritePaths` together if your downloads live elsewhere.
+
+aria2 is not installed by the script — add it from your distribution:
+
+```sh
+sudo apt install aria2     # or dnf/pacman/apk
+```
+
+Upgrade by re-running the install script and restarting the service:
+
+```sh
+curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sudo sh
+sudo systemctl restart tidefetch
+```
+
 ## Networking
 
 | Port | Protocol | Required | Purpose |
