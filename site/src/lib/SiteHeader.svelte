@@ -1,5 +1,7 @@
 <script lang="ts">
   import { ArrowRight, BookOpen, GitFork, Menu, X } from '@lucide/svelte';
+  import Wordmark from './Wordmark.svelte';
+  import { href } from './router';
 
   let { solid = false }: { solid?: boolean } = $props();
 
@@ -17,19 +19,19 @@
 
 <header class="site-header" class:scrolled class:solid>
   <div class="header-inner">
-    <a class="wordmark" href="#/" aria-label="Tidefetch home"><span>⬡</span>Tidefetch</a>
+    <a class="wordmark" href={href('')} aria-label="Tidefetch home"><Wordmark size={26} text={15.5} id="tf-hdr" /></a>
     <nav class:open={menuOpen} aria-label="Main navigation">
-      <a href="#/#features" onclick={() => (menuOpen = false)}>Features</a>
-      <a href="#/#interfaces" onclick={() => (menuOpen = false)}>Interfaces</a>
-      <a href="#/#deploy" onclick={() => (menuOpen = false)}>Deploy</a>
-      <a href="#/docs/getting-started" onclick={() => (menuOpen = false)}><BookOpen size={14} /> Docs</a>
+      <a href={href('#features')} onclick={() => (menuOpen = false)}>Features</a>
+      <a href={href('#interfaces')} onclick={() => (menuOpen = false)}>Interfaces</a>
+      <a href={href('#deploy')} onclick={() => (menuOpen = false)}>Deploy</a>
+      <a href={href('docs/getting-started')} onclick={() => (menuOpen = false)}><BookOpen size={14} /> Docs</a>
     </nav>
     <div class="header-actions">
       <a class="gh" href={repo} target="_blank" rel="noreferrer" aria-label="GitHub repository">
         <GitFork size={15} />
         <span>GitHub</span>
       </a>
-      <a class="cta" href="#/#install">Install <ArrowRight size={13} /></a>
+      <a class="cta" href={href('#install')}>Install <ArrowRight size={13} /></a>
       <button
         class="menu-toggle"
         type="button"

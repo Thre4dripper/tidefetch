@@ -2,6 +2,7 @@
   import { ArrowLeft, ArrowRight, BookOpen, ChevronRight, GitFork, Menu, X } from '@lucide/svelte';
   import { adjacentDocs, docSections, findDoc } from './docs-content';
   import { renderDoc } from './markdown';
+  import { href } from './router';
 
   let { slug, anchor = '' }: { slug: string; anchor?: string } = $props();
 
@@ -58,12 +59,12 @@
   </button>
 
   <aside class="docs-nav" class:open={navOpen} aria-label="Documentation">
-    <a class="docs-home" href="#/docs/getting-started"><BookOpen size={15} /> Documentation</a>
+    <a class="docs-home" href={href('docs/getting-started')}><BookOpen size={15} /> Documentation</a>
     {#each docSections as section (section.label)}
       <div class="nav-section">
         <span class="nav-label">{section.label}</span>
         {#each section.pages as p (p.slug)}
-          <a class="nav-item" class:active={p.slug === doc.slug} href={`#/docs/${p.slug}`}>{p.title}</a>
+          <a class="nav-item" class:active={p.slug === doc.slug} href={href(`docs/${p.slug}`)}>{p.title}</a>
         {/each}
       </div>
     {/each}
@@ -72,9 +73,9 @@
 
   <article class="docs-body">
     <nav class="crumbs" aria-label="Breadcrumb">
-      <a href="#/">Tidefetch</a>
+      <a href={href('')}>Tidefetch</a>
       <ChevronRight size={12} />
-      <a href="#/docs/getting-started">Docs</a>
+      <a href={href('docs/getting-started')}>Docs</a>
       <ChevronRight size={12} />
       <span>{doc.title}</span>
     </nav>
@@ -86,13 +87,13 @@
 
     <footer class="doc-pager">
       {#if neighbors.prev}
-        <a class="pager prev" href={`#/docs/${neighbors.prev.slug}`}>
+        <a class="pager prev" href={href(`docs/${neighbors.prev.slug}`)}>
           <span><ArrowLeft size={13} /> Previous</span>
           <strong>{neighbors.prev.title}</strong>
         </a>
       {:else}<span></span>{/if}
       {#if neighbors.next}
-        <a class="pager next" href={`#/docs/${neighbors.next.slug}`}>
+        <a class="pager next" href={href(`docs/${neighbors.next.slug}`)}>
           <span>Next <ArrowRight size={13} /></span>
           <strong>{neighbors.next.title}</strong>
         </a>
@@ -108,7 +109,7 @@
           class="toc-item"
           class:sub={entry.level === 3}
           class:active={entry.id === activeHeading}
-          href={`#/docs/${doc.slug}#${entry.id}`}>{entry.text}</a>
+          href={`#${entry.id}`}>{entry.text}</a>
       {/each}
     {/if}
   </aside>
