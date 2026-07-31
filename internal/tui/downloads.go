@@ -365,7 +365,7 @@ func (a *App) emptyState(w, h int) string {
 		return styleKey.Render(padLeft(k, 8)) + "   " + styleDesc.Render(d)
 	}
 	tut := lipgloss.JoinVertical(lipgloss.Left,
-		styleLogo.Render("⬡ tidefetch")+styleDim.Render("  nothing downloading yet"),
+		brandStatic()+styleDim.Render("  nothing downloading yet"),
 		"",
 		row("a", "add downloads — URLs, magnet links, .torrent files"),
 		row("ctrl+o", "…browse for a save folder inside the add form"),

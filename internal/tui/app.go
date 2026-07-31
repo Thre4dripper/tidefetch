@@ -894,7 +894,7 @@ func (a *App) overlay(modal string, specs []hitspec) string {
 }
 
 func (a *App) renderHeader() string {
-	logo := styleLogo.Render("⬡ tidefetch")
+	logo := brandLockup(time.Since(a.startedAt))
 
 	down := styleDownArr.Render("▼ ") + styleText.Render(humanSpeed(a.stat.DownloadSpeed.Int()))
 	up := styleUpArr.Render("▲ ") + styleText.Render(humanSpeed(a.stat.UploadSpeed.Int()))
