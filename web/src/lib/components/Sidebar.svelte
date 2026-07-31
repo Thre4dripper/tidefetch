@@ -3,6 +3,7 @@
   import { store, type Filter } from '../store.svelte';
   import { fmtBytes, fmtSpeed } from '../format';
   import Sparkline from './Sparkline.svelte';
+  import Wordmark from './Wordmark.svelte';
 
   const filters = [
     { id: 'all' as Filter, label: 'Downloads', icon: Download },
@@ -26,8 +27,7 @@
 
 <aside class="card">
   <div class="brand">
-    <span class="mark">⬡</span>
-    <span class="name">Tidefetch</span>
+    <Wordmark size={26} text={15.5} id="tf-side" />
   </div>
 
   <nav>
@@ -110,23 +110,7 @@
   .brand {
     display: flex;
     align-items: center;
-    gap: 9px;
     padding: 4px 10px 18px;
-  }
-  .mark {
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    font-size: 15px;
-    color: #10150a;
-    background: var(--signal);
-    border-radius: 7px;
-  }
-  .name {
-    font-size: 15.5px;
-    font-weight: 750;
-    letter-spacing: 0.2px;
   }
   nav {
     display: flex;

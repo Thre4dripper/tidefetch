@@ -1,6 +1,7 @@
 <script lang="ts">
   import { store } from '../store.svelte';
   import PasswordInput from './PasswordInput.svelte';
+  import Wordmark from './Wordmark.svelte';
 
   let password = $state('');
   let busy = $state(false);
@@ -23,8 +24,7 @@
       }
     }}
   >
-    <div class="logo">⬡</div>
-    <h1>tidefetch</h1>
+    <div class="logo"><Wordmark size={46} text={26} id="tf-login" /></div>
     <p class="dim">Sign in to manage your downloads</p>
     <PasswordInput bind:value={password} placeholder="Password" autocomplete="current-password" />
     {#if error}<div class="err">{error}</div>{/if}
@@ -50,11 +50,8 @@
     animation: fadeUp 0.25s ease;
   }
   .logo {
-    font-size: 40px;
-    background: var(--grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    display: flex;
+    justify-content: center;
   }
   h1 {
     margin: 0;

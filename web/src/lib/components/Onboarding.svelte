@@ -2,6 +2,7 @@
   import { store } from '../store.svelte';
   import { api } from '../api';
   import PasswordInput from './PasswordInput.svelte';
+  import TideMark from './TideMark.svelte';
 
   let step = $state(0);
   let pw = $state('');
@@ -34,8 +35,8 @@
 <div class="backdrop" role="presentation">
   <div class="card panel" role="dialog" aria-label="Welcome to tidefetch">
     {#if step === 0}
-      <div class="mark">⬡</div>
-      <h2>Welcome to tidefetch</h2>
+      <div class="mark"><TideMark size={54} id="tf-onb" /></div>
+      <h2>Welcome to tideFetch</h2>
       <p class="dim">
         Your self-hosted download manager, powered by the aria2 engine.
         HTTP, FTP, SFTP, torrents, magnets and Metalink — all in one place.
@@ -104,12 +105,8 @@
     min-height: 330px;
   }
   .mark {
-    font-size: 44px;
-    background: var(--grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-align: center;
+    display: flex;
+    justify-content: center;
   }
   h2 { margin: 4px 0 2px; font-size: 20px; text-align: center; }
   p { margin: 0; text-align: center; line-height: 1.55; font-size: 13.5px; }

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { store } from '../store.svelte';
   import TaskRow from './TaskRow.svelte';
+  import TideMark from './TideMark.svelte';
 
   const OVERSCAN = 6;
 
@@ -51,7 +52,7 @@
         <p>No downloads match this view</p>
         <button class="btn sm" onclick={() => { store.search = ''; store.filter = 'all'; }}>Clear filters</button>
       {:else}
-        <div class="mark">⬡</div>
+        <div class="mark"><TideMark size={40} /></div>
         <p>Nothing here yet</p>
         <button class="btn primary" onclick={() => (store.addOpen = true)}>＋ Add your first download</button>
       {/if}
