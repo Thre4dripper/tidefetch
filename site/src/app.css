@@ -566,9 +566,11 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
 .codeblock pre { margin: 0; padding: 15px 16px; overflow-x: auto; }
 .codeblock pre code {
   padding: 0; background: none; border: none;
-  color: #cfd9d2;
   font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
 }
+/* Shiki emits its own theme background; keep the panel colour instead. */
+.codeblock pre.shiki { background: #0b0d10 !important; }
+.codeblock pre.shiki code { color: inherit; }
 
 /* GitHub-style alerts */
 .alert { margin: 16px 0; padding: 13px 17px 13px 16px; border: 1px solid; border-radius: 10px; font-size: 13.5px; }

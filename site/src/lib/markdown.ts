@@ -1,7 +1,20 @@
 import { marked, type Tokens } from 'marked';
+import { BASE } from './router';
+import { rewriteDocHref, slugifyHeading } from './doc-links';
+import { createHighlighterCoreSync, type HighlighterCore } from 'shiki/core';
+import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
+import bash from 'shiki/langs/bash.mjs';
+import yaml from 'shiki/langs/yaml.mjs';
+import json from 'shiki/langs/json.mjs';
+import go from 'shiki/langs/go.mjs';
+import ini from 'shiki/langs/ini.mjs';
+import nginx from 'shiki/langs/nginx.mjs';
+import docker from 'shiki/langs/docker.mjs';
+import xml from 'shiki/langs/xml.mjs';
+import powershell from 'shiki/langs/powershell.mjs';
+import theme from 'shiki/themes/github-dark-default.mjs';
 
 export type TocEntry = { id: string; text: string; level: number };
-
 export type RenderedDoc = { html: string; toc: TocEntry[] };
 
 const ALERT_KINDS: Record<string, { label: string; kind: string }> = {
@@ -12,13 +25,31 @@ const ALERT_KINDS: Record<string, { label: string; kind: string }> = {
   '[!CAUTION]': { label: 'Caution', kind: 'caution' }
 };
 
+// Shiki bundled synchronously so rendering stays a pure function.
+const highlighter: HighlighterCore = createHighlighterCoreSync({
+  themes: [theme],
+  langs: [bash, yaml, json, go, ini, nginx, docker, xml, powershell],
+  engine: createJavaScriptRegexEngine()
+});
+
+const LANG_ALIAS: Record<string, string> = {
+  sh: 'bash',
+  shell: 'bash',
+  zsh: 'bash',
+  console: 'bash',
+  yml: 'yaml',
+  dockerfile: 'docker',
+  caddyfile: 'nginx',
+  caddy: 'nginx',
+  ps1: 'powershell',
+  text: 'bash',
+  '': 'bash'
+};
+
+const SUPPORTED = new Set(highlighter.getLoadedLanguages());
+
 function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/<[^>]+>/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-');
+  return slugifyHeading(text);
 }
 
 function escapeHtml(value: string): string {
@@ -69,11 +100,26 @@ export function renderDoc(source: string): RenderedDoc {
   };
 
   renderer.code = ({ text, lang }: Tokens.Code) => {
-    const language = lang ? escapeHtml(lang) : 'text';
+    const declared = (lang ?? '').trim().toLowerCase();
+    const resolved = LANG_ALIAS[declared] ?? declared;
+    const language = SUPPORTED.has(resolved) ? resolved : 'bash';
+    const label = declared || 'sh';
+
+    let body: string;
+    try {
+      body = highlighter.codeToHtml(text, {
+        lang: language,
+        theme: 'github-dark-default'
+      });
+    } catch {
+      body = `<pre class="shiki"><code>${escapeHtml(text)}</code></pre>`;
+    }
+
     return (
-      `<div class="codeblock"><div class="codeblock-bar"><span>${language}</span>` +
+      `<div class="codeblock"><div class="codeblock-bar"><span>${escapeHtml(label)}</span>` +
       `<button type="button" class="copy-code" aria-label="Copy code">Copy</button></div>` +
-      `<pre><code>${escapeHtml(text)}</code></pre></div>`
+      body +
+      `</div>`
     );
   };
 
