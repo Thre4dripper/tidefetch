@@ -1,0 +1,38 @@
+[Unit]
+Description=Tidefetch web UI (aria2 download manager)
+Documentation=https://thre4dripper.github.io/tidefetch/docs/homelab
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tidefetch
+Group=tidefetch
+
+# Path used by the install script. Change to /usr/bin if you placed it there.
+ExecStart=/usr/local/bin/tidefetch serve -host 0.0.0.0 -dir /srv/downloads
+Restart=on-failure
+RestartSec=5s
+
+# Creates and owns /var/lib/tidefetch, which holds config, session and history.
+# HOME must point at it so the XDG paths resolve for a system user.
+StateDirectory=tidefetch
+Environment=HOME=/var/lib/tidefetch
+
+# The web password is read from a file so it never appears in the unit or ps.
+Environment=TIDEFETCH_PASSWORD_FILE=/etc/tidefetch/password
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/srv/downloads
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
