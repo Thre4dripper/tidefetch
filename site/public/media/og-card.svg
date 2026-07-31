@@ -1,11 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#111316"/>
-  <g stroke="#2c3231" stroke-width="1" opacity=".7">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="g" x1="120" y1="150" x2="620" y2="470" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5ed8e7"/>
+      <stop offset="55%" stop-color="#7ee9c4"/>
+      <stop offset="100%" stop-color="#b8ff3d"/>
+    </linearGradient>
+    <clipPath id="c"><rect x="72" y="86" width="104" height="104" rx="31"/></clipPath>
+    <radialGradient id="glow" cx="50%" cy="0%" r="70%">
+      <stop offset="0%" stop-color="#5ed8e7" stop-opacity=".16"/>
+      <stop offset="100%" stop-color="#5ed8e7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0c0e11"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <g stroke="#1b2026" stroke-width="1">
     <path d="M0 70h1200M0 140h1200M0 210h1200M0 280h1200M0 350h1200M0 420h1200M0 490h1200M0 560h1200"/>
     <path d="M80 0v630M160 0v630M240 0v630M320 0v630M400 0v630M480 0v630M560 0v630M640 0v630M720 0v630M800 0v630M880 0v630M960 0v630M1040 0v630M1120 0v630"/>
   </g>
-  <path d="M112 98 166 129v62l-54 31-54-31v-62l54-31Zm0 25-31 18v37l31 18 31-18v-37l-31-18Z" fill="#b8ff3d"/>
-  <text x="58" y="330" fill="#f2f4f1" font-family="Manrope, sans-serif" font-size="116" font-weight="800">Tidefetch</text>
-  <text x="64" y="407" fill="#b8ff3d" font-family="Manrope, sans-serif" font-size="40" font-weight="600">aria2, beautifully controlled.</text>
-  <text x="66" y="477" fill="#8d9692" font-family="IBM Plex Mono, monospace" font-size="21">TERMINAL UI  ·  SELF-HOSTED WEB UI  ·  OPEN SOURCE</text>
+
+  <rect x="72" y="86" width="104" height="104" rx="31" fill="#0d1014"/>
+  <rect x="74" y="88" width="100" height="100" rx="29" stroke="url(#g)" stroke-width="4" opacity=".55"/>
+  <g clip-path="url(#c)">
+    <path d="M20 154 q26 -11 52 0 t52 0 t52 0 t52 0 V200 H20 Z" fill="url(#g)" opacity=".32"/>
+    <path d="M20 167 q26 -11 52 0 t52 0 t52 0 t52 0 V200 H20 Z" fill="url(#g)" opacity=".92"/>
+  </g>
+  <path d="M124 110V141" stroke="#eef3ef" stroke-width="7" stroke-linecap="round"/>
+  <path d="M110.7 128.4 124 142.1 137.3 128.4" stroke="#eef3ef" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="72" y="330" font-family="JetBrains Mono, ui-monospace, monospace" font-size="104" font-weight="700" fill="url(#g)">tide</text>
+  <text x="316" y="330" font-family="Inter, sans-serif" font-size="104" font-weight="300" fill="#e8edea">Fetch</text>
+
+  <text x="76" y="404" font-family="Inter, sans-serif" font-size="34" font-weight="500" fill="#939b96">A fast terminal UI for aria2 — with a web UI when you need one.</text>
+  <text x="76" y="486" font-family="JetBrains Mono, ui-monospace, monospace" font-size="21" fill="#5d6661">TUI FIRST · HEADLESS SERVERS · SELF-HOSTED · OPEN SOURCE</text>
 </svg>
