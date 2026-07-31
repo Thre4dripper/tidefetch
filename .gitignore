@@ -1,6 +1,5 @@
 # binary
 /tidefetch
-/aria2tui
 web/node_modules/
 site/node_modules/
 site/dist/
@@ -9,3 +8,8 @@ site/dist/
 # go
 *.test
 *.out
+# Anchored: GoReleaser output at the repo root only. An unanchored "dist/"
+# also matches web/dist, whose built assets are committed on purpose because
+# they are embedded into the binary by go:embed.
+/dist/
+.capture/
