@@ -73,6 +73,10 @@ not a rollback strategy.
 
 ## Storage permissions
 
+Two volumes cover everything: `/config` (settings, history, aria2 queue) and
+`/downloads` (files plus their `.aria2` resume state). See
+[Data & persistence](../data-and-persistence.md) for the full file inventory.
+
 For bind mounts:
 
 ```sh

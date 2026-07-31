@@ -118,6 +118,9 @@ safer than a public port forward. For a public hostname, follow the
 
 ## Backups
 
+See [Data & persistence](data-and-persistence.md) for the full inventory of
+stored files and what each one costs you if lost.
+
 The `/config` volume is small and critical. It contains the config, bcrypt
 password hash, RPC secret, aria2 session, and Tidefetch history.
 

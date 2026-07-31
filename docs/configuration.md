@@ -86,6 +86,9 @@ platform. It contains:
 The all-in-one image stores both config and runtime data beneath the mounted
 `/config` volume. Back up the whole volume instead of selecting subpaths.
 
+For a full inventory of every file, the container directory tree and backup
+procedures, see [Data & persistence](data-and-persistence.md).
+
 ## Config schema
 
 Example `config.json`:
