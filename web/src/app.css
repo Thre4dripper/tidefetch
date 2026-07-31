@@ -19,6 +19,9 @@
   --up: #8c82ff;
   --radius: 12px;
   --radius-sm: 8px;
+  /* Shared task grid: chip | name | lifechart | speed | status | actions.
+     The list header and every row consume this so columns never drift. */
+  --row-grid: 40px minmax(0, 1fr) 84px minmax(92px, auto) 104px 64px;
   --font: ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI Variable", "Segoe UI", Inter, Roboto, sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
 }
@@ -39,6 +42,13 @@ html, body {
 }
 
 #app { height: 100%; }
+
+@media (max-width: 1180px) {
+  :root { --row-grid: 40px minmax(0, 1fr) 0px minmax(88px, auto) 100px 64px; }
+}
+@media (max-width: 860px) {
+  :root { --row-grid: 38px minmax(0, 1fr) 0px minmax(78px, auto) 0px 62px; }
+}
 
 ::selection { background: rgba(94, 216, 231, 0.28); }
 

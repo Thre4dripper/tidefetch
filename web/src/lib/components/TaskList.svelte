@@ -39,9 +39,12 @@
 </script>
 
 <div class="listhead">
+  <span></span>
   <span class="eyebrow">{heading} · {list.length}</span>
-  <span class="eyebrow">SPEED</span>
-  <span class="eyebrow acts">STATUS</span>
+  <span></span>
+  <span class="eyebrow pace">SPEED</span>
+  <span class="eyebrow">STATUS</span>
+  <span></span>
 </div>
 
 <div class="viewport" bind:this={viewport} onscroll={onScroll}>
@@ -71,11 +74,11 @@
 <style>
   .listhead {
     display: grid;
-    grid-template-columns: 1fr auto 66px;
+    grid-template-columns: var(--row-grid);
     gap: 14px;
     padding: 16px 32px 8px 30px;
   }
-  .listhead .acts { text-align: right; }
+  .listhead .pace { text-align: right; }
   .viewport {
     flex: 1;
     overflow-y: auto;
