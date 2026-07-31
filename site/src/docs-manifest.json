@@ -1,0 +1,94 @@
+[
+  {
+    "label": "Introduction",
+    "pages": [
+      {
+        "slug": "getting-started",
+        "title": "Getting Started",
+        "description": "What Tidefetch is and the fastest ways to run it.",
+        "file": "index.md"
+      },
+      {
+        "slug": "installation",
+        "title": "Installation",
+        "description": "Install Tidefetch with the one-line script, Homebrew, Docker or Helm.",
+        "file": "installation.md"
+      }
+    ]
+  },
+  {
+    "label": "Guides",
+    "pages": [
+      {
+        "slug": "configuration",
+        "title": "Configuration",
+        "description": "Commands, flags, files, environment variables and authentication.",
+        "file": "configuration.md"
+      },
+      {
+        "slug": "data-and-persistence",
+        "title": "Data & Persistence",
+        "description": "What is stored, where it lives, and which volumes you need.",
+        "file": "data-and-persistence.md"
+      },
+      {
+        "slug": "homelab",
+        "title": "Homelab Operations",
+        "description": "Storage, networking, backups, upgrades and NAS platforms.",
+        "file": "homelab.md"
+      },
+      {
+        "slug": "reverse-proxy",
+        "title": "Reverse Proxy & TLS",
+        "description": "Caddy, Nginx, Traefik, Kubernetes Ingress and Tailscale.",
+        "file": "reverse-proxy.md"
+      },
+      {
+        "slug": "troubleshooting",
+        "title": "Troubleshooting",
+        "description": "Diagnostics, common failures and safe recovery.",
+        "file": "troubleshooting.md"
+      }
+    ]
+  },
+  {
+    "label": "Deployment",
+    "pages": [
+      {
+        "slug": "deployment/docker",
+        "title": "Docker & Podman",
+        "description": "The all-in-one container with volumes and secrets.",
+        "file": "deployment/docker.md"
+      },
+      {
+        "slug": "deployment/swarm",
+        "title": "Docker Swarm",
+        "description": "Single-replica stack with Docker secrets.",
+        "file": "deployment/swarm.md"
+      },
+      {
+        "slug": "deployment/kubernetes",
+        "title": "Kubernetes & k3s",
+        "description": "Helm chart, manifests, PVCs and probes.",
+        "file": "deployment/kubernetes.md"
+      },
+      {
+        "slug": "deployment/unraid",
+        "title": "Unraid",
+        "description": "Community Applications template and shares.",
+        "file": "deployment/unraid.md"
+      }
+    ]
+  },
+  {
+    "label": "Project",
+    "pages": [
+      {
+        "slug": "publishing",
+        "title": "Publishing",
+        "description": "Release pipeline and package registry credentials.",
+        "file": "publishing.md"
+      }
+    ]
+  }
+]

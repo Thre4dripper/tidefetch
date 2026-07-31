@@ -31,17 +31,7 @@ function escapeHtml(value: string): string {
 
 /** Rewrite repository-relative markdown links to embedded docs routes. */
 function rewriteHref(href: string): string {
-  if (/^(https?:|mailto:|#)/.test(href)) return href;
-  const clean = href.replace(/^(\.\.?\/)+/, '');
-  if (clean.endsWith('.md')) {
-    const slug = clean
-      .replace(/^docs\//, '')
-      .replace(/\.md$/, '')
-      .replace(/(^|\/)index$/, '$1getting-started');
-    return `#/docs/${slug || 'getting-started'}`;
-  }
-  // Non-markdown repository files (compose files, manifests…) go to GitHub.
-  return `https://github.com/Thre4dripper/tidefetch/blob/main/${clean}`;
+  return rewriteDocHref(href, BASE);
 }
 
 /** Render a markdown document into themed HTML plus a table of contents. */

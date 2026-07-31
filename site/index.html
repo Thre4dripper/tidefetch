@@ -4,18 +4,41 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#111316" />
+
+    <title>Tidefetch — Terminal UI and Self-Hosted Web UI for aria2</title>
     <meta
+      data-prerendered
       name="description"
-      content="Tidefetch is a fast terminal UI and self-hosted web UI for aria2, built for desktops, servers, and homelabs."
+      content="Tidefetch is a keyboard-first terminal UI (TUI) for the aria2 download manager, plus an optional self-hosted web UI for headless servers and homelabs. One static binary, no runtime. Supports HTTP, FTP, SFTP, BitTorrent and Metalink."
     />
-    <meta property="og:title" content="Tidefetch — aria2, beautifully controlled" />
+    <link data-prerendered rel="canonical" href="https://thre4dripper.github.io/tidefetch/" />
+    <meta name="author" content="Thre4dripper" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+
+    <meta property="og:site_name" content="Tidefetch" />
+    <meta data-prerendered property="og:title" content="Tidefetch — Terminal UI and Self-Hosted Web UI for aria2" />
     <meta
+      data-prerendered
       property="og:description"
-      content="A polished TUI and self-hosted web UI for aria2. One binary, full queue control, live telemetry, and homelab-ready deployment."
+      content="A keyboard-first TUI for aria2, with an optional self-hosted web UI for headless servers and homelabs. One static binary, no runtime, Docker and Helm ready."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="./media/og-card.svg" />
+    <meta data-prerendered property="og:url" content="https://thre4dripper.github.io/tidefetch/" />
+    <meta property="og:image" content="https://thre4dripper.github.io/tidefetch/media/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tidefetch — a fast terminal UI for aria2, with a web UI when you need one." />
+    <meta property="og:locale" content="en_US" />
+
     <meta name="twitter:card" content="summary_large_image" />
+    <meta data-prerendered name="twitter:title" content="Tidefetch — Terminal UI and Self-Hosted Web UI for aria2" />
+    <meta
+      data-prerendered
+      name="twitter:description"
+      content="A keyboard-first TUI for aria2, with an optional self-hosted web UI for headless servers and homelabs."
+    />
+    <meta name="twitter:image" content="https://thre4dripper.github.io/tidefetch/media/og-card.png" />
+
     <link rel="icon" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,7 +46,35 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <title>Tidefetch — aria2, beautifully controlled</title>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Tidefetch",
+        "description": "A keyboard-first terminal UI for the aria2 download manager, with an optional self-hosted web UI for headless servers and homelabs.",
+        "applicationCategory": "DeveloperApplication",
+        "applicationSubCategory": "Download Manager",
+        "operatingSystem": "macOS, Linux, Windows, FreeBSD",
+        "url": "https://thre4dripper.github.io/tidefetch/",
+        "downloadUrl": "https://github.com/Thre4dripper/tidefetch/releases",
+        "codeRepository": "https://github.com/Thre4dripper/tidefetch",
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": true,
+        "programmingLanguage": "Go",
+        "screenshot": "https://thre4dripper.github.io/tidefetch/media/og-card.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Thre4dripper",
+          "url": "https://github.com/Thre4dripper"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>

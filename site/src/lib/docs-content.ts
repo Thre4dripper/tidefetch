@@ -1,5 +1,7 @@
 // The documentation shown on the site is the repository's docs/ folder,
 // imported at build time so there is exactly one source of truth.
+import manifest from '../docs-manifest.json';
+
 const sources = import.meta.glob('../../../docs/**/*.md', {
   query: '?raw',
   import: 'default',
@@ -20,40 +22,17 @@ function sourceFor(file: string): string {
   return sources[key] ?? `# Not found\n\nMissing documentation file: \`docs/${file}\`.`;
 }
 
-const page = (slug: string, title: string, description: string, file: string): DocPage => ({
-  slug,
-  title,
-  description,
-  source: sourceFor(file)
-});
-
-export const docSections: DocSection[] = [
-  {
-    label: 'Introduction',
-    pages: [
-      page('getting-started', 'Getting Started', 'What Tidefetch is and the fastest ways to run it.', 'index.md'),
-      page('installation', 'Installation', 'Source builds, containers, release archives and package managers.', 'installation.md')
-    ]
-  },
-  {
-    label: 'Guides',
-    pages: [
-      page('configuration', 'Configuration', 'Commands, flags, files, environment variables and authentication.', 'configuration.md'),
-      page('homelab', 'Homelab Operations', 'Storage, networking, backups, upgrades and NAS platforms.', 'homelab.md'),
-      page('reverse-proxy', 'Reverse Proxy & TLS', 'Caddy, Nginx, Traefik, Kubernetes Ingress and Tailscale.', 'reverse-proxy.md'),
-      page('troubleshooting', 'Troubleshooting', 'Diagnostics, common failures and safe recovery.', 'troubleshooting.md')
-    ]
-  },
-  {
-    label: 'Deployment',
-    pages: [
-      page('deployment/docker', 'Docker & Podman', 'The all-in-one container with volumes and secrets.', 'deployment/docker.md'),
-      page('deployment/swarm', 'Docker Swarm', 'Single-replica stack with Docker secrets.', 'deployment/swarm.md'),
-      page('deployment/kubernetes', 'Kubernetes & k3s', 'Manifests, PVCs, probes and Ingress.', 'deployment/kubernetes.md'),
-      page('deployment/unraid', 'Unraid', 'Community Applications template and shares.', 'deployment/unraid.md')
-    ]
-  }
-];
+// The manifest is shared with scripts/prerender.mjs so the static pages and the
+// client app can never disagree about slugs, titles or descriptions.
+export const docSections: DocSection[] = manifest.map((section) => ({
+  label: section.label,
+  pages: section.pages.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    description: p.description,
+    source: sourceFor(p.file)
+  }))
+}));
 
 export const docPages: DocPage[] = docSections.flatMap((section) => section.pages);
 
