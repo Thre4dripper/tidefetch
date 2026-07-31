@@ -6,13 +6,15 @@
     Clipboard,
     CloudCog,
     Container,
-    Download,
+    Cpu,
     Gauge,
     Globe2,
     HardDrive,
+    Keyboard,
     Layers3,
     Network,
-    Play,
+    Package,
+    Server,
     ServerCog,
     ShieldCheck,
     SquareTerminal,
@@ -20,73 +22,85 @@
     Zap
   } from '@lucide/svelte';
   import MediaFrame from './MediaFrame.svelte';
-  import ProductMock from './ProductMock.svelte';
   import { media } from './media';
+  import { href } from './router';
 
   const repo = 'https://github.com/Thre4dripper/tidefetch';
-  let installTab = $state<'docker' | 'source' | 'go'>('docker');
+  let installTab = $state<'script' | 'brew' | 'docker' | 'go'>('script');
   let copied = $state(false);
-  let surface = $state<'web' | 'terminal'>('web');
+  let surface = $state<'terminal' | 'web'>('terminal');
 
   const commands = {
-    docker:
-      'git clone https://github.com/Thre4dripper/tidefetch.git && cd tidefetch && docker compose -f packaging/docker/docker-compose.yml up -d --build',
-    source: 'git clone https://github.com/Thre4dripper/tidefetch.git && cd tidefetch && make install',
+    script: 'curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh',
+    brew: 'brew install thre4dripper/tap/tidefetch',
+    docker: 'docker run -d -p 8210:8210 -v tidefetch:/config thre4dripper/tidefetch',
     go: 'go install github.com/Thre4dripper/tidefetch/cmd/tidefetch@latest'
   };
 
   const installNotes = {
-    docker: 'All-in-one image: web UI + aria2 engine. Copy .env.example and set a password first.',
-    source: 'Requires aria2, Go 1.26.1, Node 20+ and Make. Installs the tidefetch binary.',
-    go: 'Binary only — install aria2 separately, then run tidefetch doctor.'
+    script: 'macOS, Linux and FreeBSD. Detects your platform, verifies checksums, no runtime needed. Windows: irm .../install.ps1 | iex',
+    brew: 'macOS and Linuxbrew, with aria2 pulled in as a dependency.',
+    docker: 'All-in-one image with the aria2 engine baked in. Helm chart available.',
+    go: 'Straight from source. Install aria2 separately, then run tidefetch doctor.'
   };
 
   const features = [
     {
-      icon: Zap,
-      title: 'Fast where it matters',
-      body: 'WebSocket deltas, virtualized queues and server-downsampled piece maps stay smooth where older aria2 frontends choke.',
+      icon: Keyboard,
+      title: 'Keyboard-first, mouse-friendly',
+      body: 'Vim-style motions, single-key actions and a full mouse hit-test layer. Nothing is buried three menus deep.',
       tone: 'lime'
     },
     {
       icon: Gauge,
-      title: 'Transfer intelligence',
-      body: 'Lifetime speed charts, peers, servers, files, checksums, mirrors and every aria2 option — in context, per download.',
+      title: 'Telemetry you can read',
+      body: 'Braille speed graphs, per-task lifetime history, piece maps, disk gauges and live session stats — btop energy.',
       tone: 'cyan'
     },
     {
-      icon: ShieldCheck,
-      title: 'Secure by default',
-      body: 'bcrypt passwords, HttpOnly sessions, same-origin guards and rate limits. The RPC secret never reaches the browser.',
-      tone: 'violet'
-    },
-    {
-      icon: HardDrive,
-      title: 'Built for real storage',
-      body: 'Browse the host filesystem, watch free space, pick per-task destinations and survive restarts with session persistence.',
-      tone: 'cyan'
-    },
-    {
-      icon: Workflow,
-      title: 'Queue control without friction',
-      body: 'Pause, reorder, retry, throttle, remove, delete files — and inspect links IDM-style before committing bandwidth.',
+      icon: Cpu,
+      title: 'Tiny footprint',
+      body: 'A single static Go binary, no runtime, no Electron, ~30 MB resident. It belongs on a Pi as much as a workstation.',
       tone: 'violet'
     },
     {
       icon: Network,
       title: 'Every aria2 protocol',
       body: 'HTTP(S), FTP, SFTP, BitTorrent, Metalink, magnets, multi-mirror, custom headers, proxies and remote daemons.',
+      tone: 'cyan'
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Safe to expose',
+      body: 'bcrypt auth, HttpOnly sessions, same-origin guards, rate limits and strict CSP. The RPC secret never leaves the server.',
+      tone: 'violet'
+    },
+    {
+      icon: HardDrive,
+      title: 'Respects your storage',
+      body: 'Browse the host filesystem, watch free space, choose per-task destinations and resume cleanly across restarts.',
       tone: 'lime'
     }
   ];
 
+  const registries = [
+    { name: 'Install script', cmd: 'curl -fsSL …/install.sh | sh' },
+    { name: 'PowerShell', cmd: 'irm …/install.ps1 | iex' },
+    { name: 'Homebrew', cmd: 'brew install tidefetch' },
+    { name: 'Docker', cmd: 'docker pull thre4dripper/tidefetch' },
+    { name: 'GHCR', cmd: 'docker pull ghcr.io/…/tidefetch' },
+    { name: 'Helm', cmd: 'helm install oci://…/tidefetch' },
+    { name: 'Go', cmd: 'go install …/tidefetch' }
+  ];
+
   const deployments = [
-    { icon: Container, name: 'Docker', copy: 'Single container, two volumes', href: '#/docs/deployment/docker' },
-    { icon: Layers3, name: 'Compose', copy: 'Copy, configure, launch', href: '#/docs/deployment/docker' },
-    { icon: Workflow, name: 'Swarm', copy: 'Secret-backed stack file', href: '#/docs/deployment/swarm' },
-    { icon: CloudCog, name: 'Kubernetes', copy: 'Manifests, PVCs and probes', href: '#/docs/deployment/kubernetes' },
-    { icon: ServerCog, name: 'Unraid', copy: 'Community Apps template', href: '#/docs/deployment/unraid' },
-    { icon: Globe2, name: 'Reverse proxy', copy: 'Caddy, Nginx, Traefik', href: '#/docs/reverse-proxy' }
+    { icon: Container, name: 'Docker', copy: 'One container, two volumes', href: href('docs/deployment/docker') },
+    { icon: Layers3, name: 'Compose', copy: 'Copy, configure, launch', href: href('docs/deployment/docker') },
+    { icon: Workflow, name: 'Swarm', copy: 'Secret-backed stack file', href: href('docs/deployment/swarm') },
+    { icon: CloudCog, name: 'Kubernetes', copy: 'Helm chart and manifests', href: href('docs/deployment/kubernetes') },
+    { icon: ServerCog, name: 'Unraid', copy: 'Community Apps template', href: href('docs/deployment/unraid') },
+    { icon: Cpu, name: 'Bare metal', copy: 'systemd unit, no Docker', href: href('docs/homelab') },
+    { icon: Globe2, name: 'Reverse proxy', copy: 'Caddy, Nginx, Traefik', href: href('docs/reverse-proxy') }
   ];
 
   async function copyInstall() {
@@ -103,39 +117,37 @@
     <div class="hero-grid" aria-hidden="true"></div>
 
     <div class="hero-copy">
-      <a class="hero-badge" href="#/docs/getting-started">
-        <span class="dot"></span> Open source · TUI + Web UI for aria2 <ArrowRight size={12} />
+      <a class="hero-badge" href={href('docs/getting-started')}>
+        <span class="dot"></span> Open source · single binary · powered by aria2 <ArrowRight size={12} />
       </a>
-      <h1>
-        Downloads, <em>beautifully</em><br />under control.
-      </h1>
+      <h1>The download manager<br />that lives in your <em>terminal</em>.</h1>
       <p>
-        Tidefetch is a fast terminal UI and self-hosted web UI for the aria2 download engine.
-        One binary, full queue control and live telemetry — built for TUI lovers, headless
-        servers and homelabs.
+        Tidefetch is a keyboard-first terminal UI for the aria2 download engine, built
+        for people who live in a shell. The same binary also serves a self-hosted web
+        UI, so headless servers and homelabs get a browser dashboard on demand.
       </p>
       <div class="hero-actions">
-        <a class="btn-primary" href="#/#install"><Download size={16} /> Install Tidefetch</a>
-        <a class="btn-ghost" href="#/docs/getting-started"><BookOpen size={15} /> Read the docs</a>
+        <a class="btn-primary" href={href('#install')}><Package size={16} /> Install Tidefetch</a>
+        <a class="btn-ghost" href={href('docs/getting-started')}><BookOpen size={15} /> Read the docs</a>
       </div>
       <div class="hero-proof">
-        <span><Check size={13} /> One binary</span>
+        <span><Check size={13} /> One static binary, no runtime</span>
+        <span><Check size={13} /> Works over SSH</span>
         <span><Check size={13} /> MIT licensed</span>
-        <span><Check size={13} /> No cloud account</span>
-        <span><Check size={13} /> ~30 MB RAM</span>
       </div>
     </div>
 
-    <div class="hero-stage" id="demo">
+    <div class="hero-stage">
       <div class="stage-frame">
         {#if media.hero.enabled}
-          <video autoplay muted loop playsinline poster={media.hero.poster} aria-label="Tidefetch product overview">
+          <video autoplay muted loop playsinline poster={media.hero.poster} aria-label="Tidefetch overview">
             <source src={media.hero.webm} type="video/webm" />
             <source src={media.hero.mp4} type="video/mp4" />
           </video>
+        {:else if media.terminal.enabled}
+          <img class="stage-shot" src={media.terminal.src} alt={media.terminal.alt} />
         {:else}
-          <ProductMock />
-          <div class="video-slot"><Play size={12} /> hero-demo.webm slot</div>
+          <MediaFrame item={media.terminal} />
         {/if}
       </div>
     </div>
@@ -154,8 +166,8 @@
       <span class="kicker">Why Tidefetch</span>
       <h2>Everything the engine knows.<br />Nothing in your way.</h2>
       <p>
-        aria2 is phenomenal and invisible. Tidefetch keeps its power intact and makes it
-        legible — inspect every transfer, shape every queue, understand what your server is doing.
+        aria2 is phenomenal and completely invisible. Tidefetch keeps every bit of that
+        power and makes it legible — without leaving the keyboard.
       </p>
     </div>
     <div class="feature-grid">
@@ -172,43 +184,56 @@
   <!-- ── Interfaces ───────────────────────────────────────────────── -->
   <section class="section" id="interfaces">
     <div class="section-head">
-      <span class="kicker">Two native interfaces</span>
-      <h2>Stay in the terminal.<br />Or open it to the network.</h2>
+      <span class="kicker">Two interfaces, one engine</span>
+      <h2>A TUI for your laptop.<br />A web UI for your server.</h2>
       <p>
-        Both share the same engine, queue semantics, history and advanced options.
-        Pick the surface that fits the moment.
+        Tidefetch serves two jobs from one binary. Run it as a terminal download
+        manager on your own machine, or run <code>tidefetch serve</code> on a NAS, VPS or
+        Raspberry Pi and manage the same queue from any browser on your network.
       </p>
       <div class="surface-toggle" role="tablist" aria-label="Interface preview">
-        <button role="tab" aria-selected={surface === 'web'} class:active={surface === 'web'} onclick={() => (surface = 'web')}>
-          <Globe2 size={14} /> Web UI
-        </button>
         <button
           role="tab"
           aria-selected={surface === 'terminal'}
           class:active={surface === 'terminal'}
           onclick={() => (surface = 'terminal')}>
-          <SquareTerminal size={14} /> Terminal
+          <SquareTerminal size={14} /> Terminal UI
+        </button>
+        <button
+          role="tab"
+          aria-selected={surface === 'web'}
+          class:active={surface === 'web'}
+          onclick={() => (surface = 'web')}>
+          <Globe2 size={14} /> Web UI
         </button>
       </div>
     </div>
 
     <div class="surface-stage">
-      {#if surface === 'web'}
-        <MediaFrame item={media.web} />
-        <ul class="surface-points">
-          <li>WebSocket push — no per-tab polling storms</li>
-          <li>Virtualized lists and canvas piece maps</li>
-          <li>Password login, rate limits, strict CSP</li>
-          <li>Responsive from ultrawide to phone</li>
-        </ul>
-      {:else}
+      {#if surface === 'terminal'}
         <MediaFrame item={media.terminal} />
-        <ul class="surface-points">
-          <li>btop-style charts and full mouse support</li>
-          <li>Keyboard-first queue and file workflow</li>
-          <li>Disk gauge, telemetry sidebar, file browser</li>
-          <li>Complete aria2 settings editor built in</li>
-        </ul>
+        <div class="surface-side">
+          <span class="side-tag primary">For individuals</span>
+          <h3>A CLI tool, not a service</h3>
+          <ul class="surface-points">
+            <li>btop-style braille charts and disk gauges</li>
+            <li>Full mouse support inside the terminal</li>
+            <li>Queue, files, peers, piece map and options</li>
+            <li>Perfect over SSH, tmux and serial consoles</li>
+          </ul>
+        </div>
+      {:else}
+        <MediaFrame item={media.web} />
+        <div class="surface-side">
+          <span class="side-tag">For homelabs</span>
+          <h3>Self-hosted on headless boxes</h3>
+          <ul class="surface-points">
+            <li>WebSocket push — no per-tab polling storms</li>
+            <li>Virtualized lists and canvas piece maps</li>
+            <li>Password login, rate limits, strict CSP</li>
+            <li>Responsive from ultrawide down to phone</li>
+          </ul>
+        </div>
       {/if}
     </div>
   </section>
@@ -217,18 +242,19 @@
   <section class="section" id="install">
     <div class="install-panel">
       <div class="install-copy">
-        <span class="kicker">Start here</span>
-        <h2>Running in under a minute.</h2>
+        <span class="kicker">Install it your way</span>
+        <h2>One line on macOS,<br />Linux and Windows.</h2>
         <p>
-          Use the all-in-one container for a server, or install the binary next to an existing
-          aria2 daemon. Every platform is covered in the docs.
+          A single static binary with no runtime to install. Take the one-liner, or use
+          Homebrew, Docker and Helm if you would rather something else owned the upgrade.
         </p>
-        <a class="link-arrow" href="#/docs/installation">Every install method <ArrowRight size={14} /></a>
+        <a class="link-arrow" href={href('docs/installation')}>Every install method <ArrowRight size={14} /></a>
       </div>
       <div class="command-card">
         <div class="command-tabs" role="tablist" aria-label="Install methods">
+          <button role="tab" aria-selected={installTab === 'script'} class:active={installTab === 'script'} onclick={() => (installTab = 'script')}>Script</button>
+          <button role="tab" aria-selected={installTab === 'brew'} class:active={installTab === 'brew'} onclick={() => (installTab = 'brew')}>Homebrew</button>
           <button role="tab" aria-selected={installTab === 'docker'} class:active={installTab === 'docker'} onclick={() => (installTab = 'docker')}>Docker</button>
-          <button role="tab" aria-selected={installTab === 'source'} class:active={installTab === 'source'} onclick={() => (installTab = 'source')}>Source</button>
           <button role="tab" aria-selected={installTab === 'go'} class:active={installTab === 'go'} onclick={() => (installTab = 'go')}>Go</button>
         </div>
         <div class="command-body">
@@ -241,16 +267,26 @@
         <p class="command-note">{installNotes[installTab]}</p>
       </div>
     </div>
+
+    <div class="registry-grid">
+      {#each registries as reg (reg.name)}
+        <div class="registry">
+          <strong>{reg.name}</strong>
+          <code>{reg.cmd}</code>
+        </div>
+      {/each}
+    </div>
   </section>
 
   <!-- ── Deploy ───────────────────────────────────────────────────── -->
   <section class="section" id="deploy">
     <div class="section-head">
-      <span class="kicker">Homelab ready</span>
-      <h2>From one NAS to a cluster.</h2>
+      <span class="kicker">Only if you want the web UI</span>
+      <h2>Headless servers.<br />Homelabs. Clusters.</h2>
       <p>
-        Documented storage, health checks, secrets, backups and upgrades —
-        with configs designed to be copied, reviewed and owned.
+        Skip this entire section if you just want the terminal UI — a single binary is
+        all you need. These guides are for running <code>tidefetch serve</code> as a
+        long-lived service, with documented storage, health checks, secrets and backups.
       </p>
     </div>
     <div class="deploy-grid">
@@ -266,9 +302,9 @@
       {/each}
     </div>
     <div class="arch-strip" aria-label="Architecture">
-      <div><span>YOUR BROWSER</span><b>Dashboard</b></div>
+      <div><span>YOUR TERMINAL</span><b>tidefetch TUI</b></div>
       <ArrowRight size={15} />
-      <div><span>PORT 8210</span><b>Tidefetch broker</b></div>
+      <div><span>OR PORT 8210</span><b>Web UI</b></div>
       <ArrowRight size={15} />
       <div><span>PRIVATE RPC</span><b>aria2 engine</b></div>
       <ArrowRight size={15} />
@@ -279,12 +315,12 @@
   <!-- ── Closing ──────────────────────────────────────────────────── -->
   <section class="closing">
     <div class="closing-glow" aria-hidden="true"></div>
-    <span class="closing-mark">⬡</span>
+    <span class="closing-mark"><Server size={26} /></span>
     <h2>Give aria2 the interface<br />it deserves.</h2>
-    <p>Open source, self-hosted and built for the machines you already own.</p>
+    <p>For TUI lovers, headless servers and self-hosted homelabs.</p>
     <div class="closing-actions">
-      <a class="btn-primary" href="#/#install"><Download size={16} /> Install Tidefetch</a>
-      <a class="btn-ghost" href={repo} target="_blank" rel="noreferrer">View source</a>
+      <a class="btn-primary" href={href('#install')}><Package size={16} /> Install Tidefetch</a>
+      <a class="btn-ghost" href={repo} target="_blank" rel="noreferrer"><Zap size={15} /> View source</a>
     </div>
   </section>
 </main>

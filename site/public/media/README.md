@@ -1,27 +1,95 @@
-# Tidefetch site media
+# Site media
 
-The site renders polished product mockups until each asset is ready. Add the
-files below, then change the matching `enabled` value in
-`site/src/lib/media.ts` to `true`.
+Assets used by the product site. Each slot renders a labelled placeholder until
+the file exists **and** its `enabled` flag is set to `true` in
+[`src/lib/media.ts`](../../src/lib/media.ts).
 
-| File | Recommended export | Content |
+| File | Slot | Status |
 | --- | --- | --- |
-| `hero-demo.webm` | 1920×1080, VP9/AV1, muted, ≤8 MB | 20–35 second dashboard-to-detail product loop |
-| `hero-demo.mp4` | 1920×1080, H.264, muted, ≤12 MB | Safari/fallback version of the same loop |
-| `hero-poster.webp` | 2400×1350, quality 82 | Strong frame from the demo video |
-| `web-dashboard.webp` | 2400×1500, quality 82 | Queue with active, paused, and completed tasks |
-| `terminal-overview.webp` | 2400×1500, quality 82 | Wide TUI with sidebar, disk, chart, and queue |
-| `task-detail.webp` | 1800×1350, quality 82 | Files/peers/piece-map detail view |
-| `mobile-dashboard.webp` | 1170×2532, quality 82 | Mobile queue and task controls |
-| `og-card.webp` | 1200×630, quality 86 | Social sharing card; update `site/index.html` from `.svg` to `.webp` |
+| `terminal-overview.png` | Hero + Interfaces (TUI) | **Needed** |
+| `web-dashboard.png` | Interfaces (web UI) | Present |
+| `hero-demo.webm` / `.mp4` | Hero video (optional, replaces the hero image) | Optional |
+| `task-detail.png` | Transfer detail | Optional |
+| `mobile-dashboard.png` | Mobile view | Optional |
 
-Capture screenshots at 2× scale with realistic filenames and mixed task
-states. Avoid exposing RPC secrets, private tracker URLs, usernames, or local
-filesystem paths. Keep the hero video silent because it autoplays muted.
+## Social card: og-card.svg and og-card.png
 
-Useful video conversion commands:
+These are **not duplicates**. `og-card.svg` is the editable source; edit only
+that one. `og-card.png` is a raster export of it, and it has to exist because
+Facebook, LinkedIn, Slack and X all reject SVG for `og:image` — an SVG-only
+card renders as no card at all.
+
+After editing the SVG, re-export the PNG at exactly 1200×630. Any of these work:
 
 ```sh
-ffmpeg -i capture.mov -an -vf "scale=1920:-2" -c:v libvpx-vp9 -crf 34 -b:v 0 hero-demo.webm
-ffmpeg -i capture.mov -an -vf "scale=1920:-2" -c:v libx264 -crf 23 -movflags +faststart hero-demo.mp4
+# rsvg-convert (brew install librsvg)
+rsvg-convert -w 1200 -h 630 og-card.svg -o og-card.png
+
+# ImageMagick
+magick -background none -density 144 og-card.svg -resize 1200x630 og-card.png
 ```
+
+Or open the SVG in a browser sized to 1200×630 and screenshot it — that route
+keeps the webfonts, which command-line rasterizers substitute unless the font
+files are installed locally.
+
+The dimensions are declared in `index.html` (`og:image:width` / `height`), so
+keep them in sync if you ever change the aspect ratio.
+
+## Capturing the terminal UI
+
+Rendering terminal output to HTML drifts on font metrics — block and braille
+glyphs end up misaligned. Take a real screenshot instead.
+
+Set up a representative state first: a few active downloads at different
+speeds, one complete, one paused, with the side panel visible (`t`).
+
+**Option A — screenshot a real terminal (most faithful)**
+
+1. Size the window to about `172×40` cells.
+2. Use a font with good block and braille coverage: JetBrains Mono, Iosevka,
+   Fira Code or SF Mono.
+3. Run `tidefetch`, then capture the window:
+   - macOS: `Cmd+Shift+4`, then `Space`, then click the window
+   - Linux: `gnome-screenshot -w` or `spectacle -a`
+   - Windows: `Win+Shift+S`
+
+**Option B — [freeze](https://github.com/charmbracelet/freeze)**
+
+```sh
+brew install charmbracelet/tap/freeze
+freeze --execute "tidefetch" --window --border.radius 8 \
+  --output terminal-overview.png
+```
+
+**Option C — [asciinema](https://asciinema.org) + agg** for an animated hero
+
+```sh
+asciinema rec demo.cast --command tidefetch
+agg demo.cast demo.gif --font-family "JetBrains Mono" --theme dracula
+```
+
+Then convert to video for the hero slot:
+
+```sh
+ffmpeg -i demo.gif -an -c:v libvpx-vp9 -crf 34 -b:v 0 hero-demo.webm
+ffmpeg -i demo.gif -an -c:v libx264 -crf 23 -movflags +faststart hero-demo.mp4
+```
+
+## Capturing the web UI
+
+Run `tidefetch serve`, open the dashboard at 1600×1000, select a task so the
+detail panel is visible, then screenshot the page.
+
+## Guidelines
+
+- Export at 2× where possible; the site downscales.
+- Keep PNG under ~400 KB (`pngquant --quality 65-85` or `sips`).
+- Scrub anything private: RPC secrets, private tracker URLs, usernames, real
+  file paths and internal hostnames.
+- The hero video autoplays muted — no audio track needed.
+- The TUI theme in the screenshot should be **Surge** (the default) unless the
+  shot is specifically demonstrating theming.
+
+After adding a file, set its `enabled` flag in `src/lib/media.ts` and rebuild
+with `make site`.
