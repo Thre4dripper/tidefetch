@@ -30,7 +30,7 @@ import (
 )
 
 // Overridden at release time via -ldflags; kept in sync by release-please.
-var version = "0.2.0" // x-release-please-version
+var version = "0.3.0" // x-release-please-version
 
 func main() {
 	args := os.Args[1:]

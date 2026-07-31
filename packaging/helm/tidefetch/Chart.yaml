@@ -1,9 +1,11 @@
 apiVersion: v2
 name: tidefetch
-description: Terminal-first download manager for the aria2 engine, with a self-hosted web UI
+description: >-
+  Terminal-first download manager for the aria2 engine, with a self-hosted web
+  UI
 type: application
-version: 0.2.0 # x-release-please-version
-appVersion: "0.2.0" # x-release-please-version
+version: 0.3.0
+appVersion: 0.2.0
 home: https://github.com/Thre4dripper/tidefetch
 sources:
   - https://github.com/Thre4dripper/tidefetch
