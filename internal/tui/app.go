@@ -111,6 +111,9 @@ type App struct {
 
 // New builds the root model.
 func New(cfg *config.Config, hist *history.Store, res *daemon.Result, initialAdds []string) *App {
+	// Palette first: every style below is derived from the active theme.
+	applyTheme(cfg.Theme)
+
 	a := &App{
 		cfg:         cfg,
 		hist:        hist,

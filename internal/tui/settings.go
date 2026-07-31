@@ -17,6 +17,7 @@ import (
 const (
 	localDownloadDir = "@download-dir"
 	localPollMS      = "@poll-ms"
+	localTheme       = "@theme"
 	localSidebar     = "@sidebar"
 	localCompact     = "@compact-rows"
 	localConfirm     = "@confirm-remove"
@@ -78,6 +79,7 @@ var settingTabs = []settingTab{
 		{"timeout", "I/O timeout (seconds)", "socket inactivity timeout", []string{"10", "30", "60", "120"}, false},
 	}},
 	{name: "Interface", short: "TUI", defs: []settingDef{
+		{localTheme, "Colour theme", "applies instantly", themeLabels(), true},
 		{localDownloadDir, "Default download directory", "TUI + daemon default", nil, true},
 		{localPollMS, "Refresh interval", "milliseconds; 300 is the minimum", []string{"300", "500", "700", "1000", "2000"}, true},
 		{localSidebar, "Side panel by default", "toggle any time with t", []string{"true", "false"}, true},
@@ -180,6 +182,8 @@ func (a *App) settingValue(def settingDef) string {
 		return a.cfg.DownloadDir
 	case localPollMS:
 		return strconv.Itoa(a.cfg.PollMS)
+	case localTheme:
+		return themeLabel(a.cfg.Theme)
 	case localSidebar:
 		return strconv.FormatBool(a.cfg.Sidebar)
 	case localCompact:
@@ -204,6 +208,22 @@ func (a *App) settingValue(def settingDef) string {
 		return "(not set)"
 	}
 	return ""
+}
+
+// previewSetting applies a purely visual setting immediately while the user
+// is still cycling choices, so the effect is visible before committing.
+// Nothing is persisted until Enter.
+func (a *App) previewSetting(def settingDef, val string) {
+	if def.key == localTheme {
+		applyTheme(themeByLabel(val))
+	}
+}
+
+// cancelPreview restores any previewed setting to its persisted value.
+func (a *App) cancelPreview(def settingDef) {
+	if def.key == localTheme {
+		applyTheme(a.cfg.Theme)
+	}
 }
 
 // updateSettings handles keys on the settings screen.
@@ -245,13 +265,16 @@ func (a *App) updateSettings(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 			case "left", "h", "-":
 				m.choice = (m.choice - 1 + len(m.choices)) % len(m.choices)
+				a.previewSetting(def, m.choices[m.choice])
 			case "right", "l", "+", "tab", " ":
 				m.choice = (m.choice + 1) % len(m.choices)
+				a.previewSetting(def, m.choices[m.choice])
 			case "enter":
 				m.editing = false
 				return a, a.saveSetting(def, m.choices[m.choice])
 			case "esc":
 				m.editing = false
+				a.cancelPreview(def)
 			}
 			return a, nil
 		}
@@ -379,6 +402,10 @@ func (a *App) saveLocalSetting(def settingDef, val string) tea.Cmd {
 			return func() tea.Msg { return actionMsg{err: fmt.Errorf("refresh interval must be at least 300 ms")} }
 		}
 		cfg.PollMS = n
+	case localTheme:
+		name := themeByLabel(val)
+		applyTheme(name)
+		cfg.Theme = name
 	case localSidebar:
 		on, err := strconv.ParseBool(val)
 		if err != nil {

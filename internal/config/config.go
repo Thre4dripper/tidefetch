@@ -26,9 +26,10 @@ type Config struct {
 	// HistoryLimit caps the number of retained history entries.
 	HistoryLimit int `json:"history_limit"`
 	// Terminal UI preferences.
-	Sidebar       bool `json:"sidebar"`
-	CompactRows   bool `json:"compact_rows"`
-	ConfirmRemove bool `json:"confirm_remove"`
+	Theme         string `json:"theme,omitempty"`
+	Sidebar       bool   `json:"sidebar"`
+	CompactRows   bool   `json:"compact_rows"`
+	ConfirmRemove bool   `json:"confirm_remove"`
 	// ExtraSpawnArgs are appended to the aria2c command line when spawning.
 	ExtraSpawnArgs []string `json:"extra_spawn_args,omitempty"`
 
@@ -101,6 +102,7 @@ func Default() *Config {
 		DownloadDir:    dl,
 		PollMS:         700,
 		HistoryLimit:   2000,
+		Theme:          "surge",
 		Sidebar:        true,
 		ConfirmRemove:  true,
 		DefaultSplit:   "16",
