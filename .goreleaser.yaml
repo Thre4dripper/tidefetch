@@ -1,0 +1,137 @@
+# GoReleaser publishes Tidefetch to every supported registry on tag push.
+# Validate locally with: goreleaser release --snapshot --clean --skip=publish
+version: 2
+
+project_name: tidefetch
+
+before:
+  hooks:
+    - go mod tidy
+    # The web UI is embedded via go:embed, so it must be built first.
+    - npm --prefix web ci
+    - npm --prefix web run build
+
+builds:
+  - id: tidefetch
+    main: ./cmd/tidefetch
+    binary: tidefetch
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    # linux/armv7 covers 32-bit Raspberry Pi; arm64 covers everything modern.
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64, arm]
+    goarm: ["7"]
+    ignore:
+      - goos: darwin
+        goarch: arm
+      - goos: windows
+        goarch: arm
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+      # "docs/**/*" only matches depth >= 2, which silently dropped every
+      # top-level page (installation.md, homelab.md, ...). "docs/**" is recursive.
+      - docs/**
+
+checksum:
+  name_template: checksums.txt
+
+signs:
+  - artifacts: checksum
+    args:
+      - --batch
+      - --local-user
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - --output
+      - ${signature}
+      - --detach-sign
+      - ${artifact}
+
+dockers_v2:
+  - id: tidefetch
+    images:
+      - thre4dripper/tidefetch
+      - ghcr.io/thre4dripper/tidefetch
+    tags:
+      - "{{ .Version }}"
+      - "{{ .Major }}.{{ .Minor }}"
+      - "{{ if not .Prerelease }}latest{{ end }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    dockerfile: packaging/docker/Dockerfile.release
+    labels:
+      org.opencontainers.image.title: tidefetch
+      org.opencontainers.image.description: Terminal UI and self-hosted web UI for the aria2 download engine
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.source: https://github.com/Thre4dripper/tidefetch
+      org.opencontainers.image.licenses: MIT
+
+homebrew_casks:
+  - name: tidefetch
+    binaries: [tidefetch]
+    repository:
+      owner: Thre4dripper
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: https://github.com/Thre4dripper/tidefetch
+    description: Terminal UI and self-hosted web UI for the aria2 download engine
+    license: MIT
+    dependencies:
+      - formula: aria2
+    # Releases are not notarised, so clear the quarantine flag on install.
+    hooks:
+      post:
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr",
+                           args: ["-dr", "com.apple.quarantine", "#{staged_path}/tidefetch"]
+          end
+
+# release-please owns the changelog: it derives CHANGELOG.md and the GitHub
+# release notes from Conventional Commits when the release PR is merged.
+# Generating a second changelog here would duplicate every entry.
+changelog:
+  disable: true
+
+release:
+  github:
+    owner: Thre4dripper
+    name: tidefetch
+  # The release already exists by the time GoReleaser runs (release-please
+  # created it with the tag), so append artifacts instead of replacing notes.
+  mode: append
+  draft: false
+  prerelease: auto
+  footer: |
+    ### Install
+
+    ```sh
+    # macOS, Linux
+    curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh
+
+    # Windows (PowerShell)
+    irm https://thre4dripper.github.io/tidefetch/install.ps1 | iex
+
+    # macOS via Homebrew
+    brew install thre4dripper/tap/tidefetch
+
+    # Containers
+    docker pull thre4dripper/tidefetch:{{ .Version }}
+    ```
+
+    Full documentation: https://thre4dripper.github.io/tidefetch/docs/installation

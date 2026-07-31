@@ -1,0 +1,28 @@
+# Runtime image for GoReleaser — the binary is already built and injected,
+# so this stage only adds the aria2 engine and runtime scaffolding.
+#
+# aria2 is GPL-2.0-or-later and installed from the Alpine distribution package;
+# see https://github.com/aria2/aria2 for its source.
+FROM alpine:3.22
+
+RUN apk add --no-cache aria2 ca-certificates tzdata \
+    && addgroup -g 1000 tidefetch \
+    && adduser -u 1000 -G tidefetch -D -h /config tidefetch \
+    && mkdir -p /downloads \
+    && chown tidefetch:tidefetch /downloads
+
+# GoReleaser stages artifacts per target platform, so the binary is read from
+# the $TARGETPLATFORM subdirectory of the build context.
+ARG TARGETPLATFORM
+COPY ${TARGETPLATFORM}/tidefetch /usr/local/bin/tidefetch
+
+USER tidefetch
+ENV HOME=/config
+VOLUME ["/config", "/downloads"]
+EXPOSE 8210
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+    CMD wget -q -O /dev/null http://127.0.0.1:8210/ || exit 1
+
+ENTRYPOINT ["tidefetch"]
+CMD ["serve", "-host", "0.0.0.0", "-port", "8210", "-dir", "/downloads"]
