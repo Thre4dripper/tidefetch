@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - site/**
+      # The site embeds docs/*.md at build time and serves the install scripts,
+      # so both must trigger a redeploy or the published copies go stale.
+      - docs/**
+      - scripts/install.sh
+      - scripts/install.ps1
       - .github/workflows/site.yml
   workflow_dispatch:
 
