@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tidefetch.fullname" . }}
+  labels: {{- include "tidefetch.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  # Tidefetch owns a single aria2 session on ReadWriteOnce storage, so the old
+  # pod must release its volumes before the new one starts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: {{- include "tidefetch.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "tidefetch.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext: {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: tidefetch
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: TZ
+              value: {{ .Values.timezone | quote }}
+            {{- if .Values.auth.enabled }}
+            - name: TIDEFETCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tidefetch.secretName" . }}
+                  key: {{ .Values.auth.secretKey }}
+            {{- end }}
+          args:
+            - serve
+            - -host
+            - 0.0.0.0
+            - -port
+            - {{ .Values.service.port | quote }}
+            - -dir
+            - /downloads
+            {{- if not .Values.auth.enabled }}
+            - -no-auth
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+            {{- if .Values.bittorrent.enabled }}
+            - name: bt-tcp
+              containerPort: {{ .Values.bittorrent.port }}
+              protocol: TCP
+            - name: bt-udp
+              containerPort: {{ .Values.bittorrent.port }}
+              protocol: UDP
+            {{- end }}
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            failureThreshold: 3
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          securityContext: {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: downloads, mountPath: /downloads }
+      volumes:
+        - name: config
+          {{- if .Values.persistence.config.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "tidefetch.fullname" . }}-config
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: downloads
+          {{- if .Values.persistence.downloads.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.downloads.existingClaim }}
+          {{- else if .Values.persistence.downloads.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "tidefetch.fullname" . }}-downloads
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

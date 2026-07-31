@@ -1,0 +1,71 @@
+image:
+  repository: thre4dripper/tidefetch
+  tag: ""            # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+
+# Web UI authentication. Prefer existingSecret in real deployments.
+auth:
+  enabled: true
+  password: ""
+  existingSecret: ""
+  secretKey: password
+
+service:
+  type: ClusterIP
+  port: 8210
+
+# Inbound BitTorrent peers. Disabled by default — enable if you seed.
+bittorrent:
+  enabled: false
+  port: 6881
+  serviceType: LoadBalancer
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  host: tidefetch.example.com
+  tls:
+    enabled: true
+    secretName: tidefetch-tls
+
+persistence:
+  config:
+    enabled: true
+    size: 2Gi
+    storageClass: ""
+    accessMode: ReadWriteOnce
+  downloads:
+    enabled: true
+    size: 100Gi
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    existingClaim: ""
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 64Mi
+  limits:
+    memory: 512Mi
+
+# The container runs as uid/gid 1000 and needs no elevated privileges.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+
+timezone: Etc/UTC
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

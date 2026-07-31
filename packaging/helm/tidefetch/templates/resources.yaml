@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tidefetch.fullname" . }}
+  labels: {{- include "tidefetch.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector: {{- include "tidefetch.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+{{- if .Values.bittorrent.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tidefetch.fullname" . }}-bittorrent
+  labels: {{- include "tidefetch.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.bittorrent.serviceType }}
+  externalTrafficPolicy: Local
+  selector: {{- include "tidefetch.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: bt-tcp
+      port: {{ .Values.bittorrent.port }}
+      targetPort: bt-tcp
+      protocol: TCP
+    - name: bt-udp
+      port: {{ .Values.bittorrent.port }}
+      targetPort: bt-udp
+      protocol: UDP
+{{- end }}
+{{- if and .Values.auth.enabled (not .Values.auth.existingSecret) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "tidefetch.secretName" . }}
+  labels: {{- include "tidefetch.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  {{ .Values.auth.secretKey }}: {{ required "auth.password or auth.existingSecret is required when auth.enabled=true" .Values.auth.password | quote }}
+{{- end }}
+{{- if .Values.persistence.config.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "tidefetch.fullname" . }}-config
+  labels: {{- include "tidefetch.labels" . | nindent 4 }}
+spec:
+  accessModes: [{{ .Values.persistence.config.accessMode }}]
+  {{- with .Values.persistence.config.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.config.size }}
+{{- end }}
+{{- if and .Values.persistence.downloads.enabled (not .Values.persistence.downloads.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "tidefetch.fullname" . }}-downloads
+  labels: {{- include "tidefetch.labels" . | nindent 4 }}
+spec:
+  accessModes: [{{ .Values.persistence.downloads.accessMode }}]
+  {{- with .Values.persistence.downloads.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.downloads.size }}
+{{- end }}
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "tidefetch.fullname" . }}
+  labels: {{- include "tidefetch.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts: [{{ .Values.ingress.host | quote }}]
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "tidefetch.fullname" . }}
+                port:
+                  name: http
+{{- end }}
