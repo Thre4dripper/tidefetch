@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/charmbracelet/lipgloss"
@@ -56,8 +55,22 @@ func TestSparkline(t *testing.T) {
 	if got := []rune(s); len(got) != 8 {
 		t.Errorf("len = %d", len(got))
 	}
-	if !strings.HasSuffix(s, "█") {
-		t.Errorf("max should be full block: %q", s)
+	// The scale carries headroom so a steady transfer never renders as a
+	// solid filled bar, which reads as a progress indicator. The peak should
+	// therefore sit high but stop short of the full block.
+	runes := []rune(s)
+	peak := runes[len(runes)-1]
+	if peak == '█' {
+		t.Errorf("peak should leave headroom, got full block: %q", s)
+	}
+	if peak != '▆' && peak != '▇' {
+		t.Errorf("peak should be near the top, got %q in %q", peak, s)
+	}
+	// Values must increase monotonically with the samples.
+	for i := 2; i < len(runes); i++ {
+		if runes[i] < runes[i-1] {
+			t.Errorf("not monotonic at %d: %q", i, s)
+		}
 	}
 	// window smaller than samples
 	if got := sparkline([]float64{1, 2, 3, 4}, 2); len([]rune(got)) != 2 {

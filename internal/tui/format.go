@@ -106,6 +106,8 @@ func sparkline(samples []float64, width int) string {
 			max = v
 		}
 	}
+	// Headroom so a steady transfer does not render as a solid filled bar.
+	max *= 1.18
 	var b strings.Builder
 	for i := 0; i < width-len(samples); i++ {
 		b.WriteRune(' ')

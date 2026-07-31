@@ -50,6 +50,9 @@ func brailleGraph(samples []float64, w, h int, maxVal float64) []string {
 				maxVal = v
 			}
 		}
+		// Headroom keeps a steady transfer off the ceiling, so the chart reads
+		// as a chart instead of a solid filled bar.
+		maxVal *= 1.18
 	}
 	rows := h * 4
 	// heights[c] = number of dots lit in column c (right aligned).
