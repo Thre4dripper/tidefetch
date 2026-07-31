@@ -28,7 +28,8 @@
     <strong>{session.value} <small>{session.unit}</small></strong>
   </div>
   <div class="chart">
-    <Bars points={store.downHistory} height={52} color="var(--accent)" />
+    <span class="charthead">THROUGHPUT · LAST 36 SAMPLES</span>
+    <Bars points={store.downHistory} height={42} color="var(--accent)" />
   </div>
 </section>
 
@@ -68,9 +69,17 @@
   }
   .chart {
     display: flex;
-    align-items: flex-end;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
     min-width: 0;
     padding: 2px 0 1px;
+  }
+  .charthead {
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
   }
 
   @media (max-width: 1180px) {
