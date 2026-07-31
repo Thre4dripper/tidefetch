@@ -29,7 +29,8 @@ import (
 	"github.com/Thre4dripper/tidefetch/internal/tui"
 )
 
-var version = "0.2.0"
+// Overridden at release time via -ldflags; kept in sync by release-please.
+var version = "0.2.0" // x-release-please-version
 
 func main() {
 	args := os.Args[1:]
