@@ -223,7 +223,7 @@ make docker     # container image
 download directory and data directory.
 
 The install script already verifies checksums for you. To check a manual
-download, release artifacts ship a signed checksum manifest:
+download, release artifacts ship a checksum manifest:
 
 ```sh
 curl -fsSLO https://github.com/Thre4dripper/tidefetch/releases/latest/download/checksums.txt

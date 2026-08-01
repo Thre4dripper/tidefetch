@@ -8,7 +8,7 @@ packages, container images and the Helm chart in one pass.
 
 | Target | Artifact | Automated |
 | --- | --- | --- |
-| GitHub Releases | archives, checksums, signature | yes |
+| GitHub Releases | archives, checksums, provenance attestation | yes |
 | Install scripts | `install.sh` / `install.ps1` on GitHub Pages | yes |
 | Docker Hub + GHCR | multi-arch `linux/amd64` and `linux/arm64` images | yes |
 | Homebrew | cask in `Thre4dripper/homebrew-tap` | yes |
@@ -30,11 +30,13 @@ Add these under **Settings → Secrets and variables → Actions**:
 
 | Secret | Purpose |
 | --- | --- |
-| `HOMEBREW_TAP_TOKEN` | PAT with `contents:write` on `homebrew-tap` |
-| `DOCKERHUB_USERNAME` | Docker Hub account name |
-| `DOCKERHUB_TOKEN` | Docker Hub access token with write scope |
-| `GPG_PRIVATE_KEY` | ASCII-armoured signing key for packages and checksums |
-| `GPG_PASSPHRASE` | Passphrase for the above |
+| `HOMEBREW_TAP_TOKEN` | PAT with `contents:write` on `homebrew-tap` — optional, skips the cask without it |
+| `DOCKERHUB_USERNAME` | Docker Hub account name — optional, GHCR-only without it |
+| `DOCKERHUB_TOKEN` | Docker Hub access token with Read & Write scope |
+
+`GITHUB_TOKEN` is provided automatically and covers GHCR, GitHub Releases, the
+Helm chart push and provenance attestation. There is no signing key to create,
+rotate or leak.
 
 `GITHUB_TOKEN` is provided automatically and covers GHCR, GitHub Releases and
 the Helm chart push.
@@ -45,15 +47,24 @@ Create this once:
 
 - `Thre4dripper/homebrew-tap`
 
-### Signing key
+### Supply chain: provenance attestation
+
+Every release archive, `checksums.txt` and the container image get a signed
+[build provenance attestation](https://docs.github.com/actions/security-guides/using-artifact-attestations).
+This is always on and needs no secret — signing keys are minted per run from the
+workflow's OIDC identity and recorded in a public transparency log.
+
+An attestation proves *which workflow built the file, from which commit*. A
+stolen credential cannot forge that, whereas a GPG key stored in CI secrets can
+sign anything once copied. That is why this project attests rather than
+GPG-signs.
+
+Anyone can verify a download:
 
 ```sh
-gpg --full-generate-key
-gpg --armor --export-secret-keys you@example.com | pbcopy   # → GPG_PRIVATE_KEY
+gh attestation verify tidefetch_linux_amd64.tar.gz --repo Thre4dripper/tidefetch
+gh attestation verify oci://ghcr.io/thre4dripper/tidefetch:0.2.0 --repo Thre4dripper/tidefetch
 ```
-
-The detached signature for `checksums.txt` is attached to each release, so
-anyone can verify a download against your public key.
 
 ### GitHub Pages
 

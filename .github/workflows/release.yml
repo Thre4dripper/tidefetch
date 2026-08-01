@@ -26,6 +26,7 @@ permissions:
   contents: write
   packages: write
   id-token: write
+  attestations: write
 
 concurrency:
   group: release
@@ -129,24 +130,25 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: Import GPG signing key
-        if: ${{ !inputs.dry_run }}
-        id: gpg
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
-      # Docker is published by its own parallel job.
       - name: Build and publish archives
         uses: goreleaser/goreleaser-action@v6
         with:
           version: '~> v2'
-          args: ${{ inputs.dry_run && 'release --snapshot --clean --skip=publish,sign,docker' || 'release --clean --skip=docker' }}
+          args: ${{ inputs.dry_run && 'release --snapshot --clean --skip=publish,docker' || 'release --clean --skip=docker' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      # Binds every artifact to this workflow run and commit. Verify with:
+      #   gh attestation verify tidefetch_linux_amd64.tar.gz --repo Thre4dripper/tidefetch
+      - name: Attest build provenance
+        if: ${{ !inputs.dry_run }}
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -207,6 +209,7 @@ jobs:
             org.opencontainers.image.licenses=MIT
 
       - name: Build and push images
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .

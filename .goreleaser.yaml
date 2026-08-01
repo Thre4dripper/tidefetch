@@ -49,16 +49,9 @@ archives:
 checksum:
   name_template: checksums.txt
 
-signs:
-  - artifacts: checksum
-    args:
-      - --batch
-      - --local-user
-      - "{{ .Env.GPG_FINGERPRINT }}"
-      - --output
-      - ${signature}
-      - --detach-sign
-      - ${artifact}
+# Artifacts are not GPG-signed. Provenance is attested instead by the release
+# workflow (actions/attest-build-provenance), which binds each file to the
+# workflow run and source commit without a long-lived key.
 
 # Container images are built by the `docker` job in .github/workflows/release.yml
 # with buildx, so it can run in parallel with this and reuse the layer cache.

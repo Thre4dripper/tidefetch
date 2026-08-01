@@ -4,7 +4,7 @@
 #   curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh
 #
 # Nothing is compiled: this downloads the prebuilt static binary that matches
-# your platform, verifies its SHA-256 against the signed checksums file from the
+# your platform, verifies its SHA-256 against the checksums file from the
 # same release, and installs it onto your PATH.
 #
 # Environment overrides:
