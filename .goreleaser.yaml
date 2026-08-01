@@ -102,19 +102,35 @@ homebrew_casks:
                            args: ["-dr", "com.apple.quarantine", "#{staged_path}/tidefetch"]
           end
 
-# release-please owns the changelog: it derives CHANGELOG.md and the GitHub
-# release notes from Conventional Commits when the release PR is merged.
-# Generating a second changelog here would duplicate every entry.
 changelog:
-  disable: true
+  sort: asc
+  # Compare against the previous tag rather than the GitHub API so the notes are
+  # identical whether the release runs from a tag push or a manual dispatch.
+  use: git
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: Fixes
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: Documentation
+      regexp: '^.*?docs(\(.+\))??!?:.+$'
+      order: 2
+    - title: Other
+      order: 99
+  filters:
+    exclude:
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
 
 release:
   github:
     owner: Thre4dripper
     name: tidefetch
-  # The release already exists by the time GoReleaser runs (release-please
-  # created it with the tag), so append artifacts instead of replacing notes.
-  mode: append
   draft: false
   prerelease: auto
   footer: |

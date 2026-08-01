@@ -1,18 +1,24 @@
 name: Release
 
+# Three ways to release, in priority order:
+#   1. push a tag:            git tag v0.3.0 && git push origin v0.3.0
+#   2. Actions → Run:         type a version, untick dry run
+#   3. merge the release PR:  the PR that release-pr.yml keeps open
+# All three converge on the same validate → build → publish pipeline.
 on:
   push:
     tags: ['v*']
-  workflow_call:
-    inputs:
-      tag:
-        description: Tag to build and publish
-        required: true
-        type: string
+  pull_request:
+    types: [closed]
+    branches: [main]
   workflow_dispatch:
     inputs:
+      version:
+        description: 'Version to release, e.g. v0.3.0. Leave empty for a dry run.'
+        type: string
+        required: false
       dry_run:
-        description: Build artifacts without publishing
+        description: Build artifacts without publishing anything
         type: boolean
         default: true
 
@@ -21,16 +27,93 @@ permissions:
   packages: write
   id-token: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  release:
+  # Resolves the version from whichever trigger fired, enforces semver and
+  # newer-than-latest, and creates the tag when one does not exist yet.
+  validate:
+    # For pull_request events, only a MERGED release PR qualifies.
+    if: >-
+      ${{ !inputs.dry_run &&
+          (github.event_name != 'pull_request' ||
+           (github.event.pull_request.merged == true &&
+            github.event.pull_request.head.ref == 'release/next')) }}
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.check.outputs.tag }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
+          fetch-depth: 0
+
+      - name: Resolve and validate version
+        id: check
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          case "${{ github.event_name }}" in
+            push)              TAG="${{ github.ref_name }}" ;;
+            workflow_dispatch) TAG="${{ inputs.version }}" ;;
+            pull_request)      TAG="$(printf '%s' "$PR_TITLE" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?' | head -n1)" ;;
+          esac
+          [ -n "$TAG" ] || { echo "::error::could not resolve a version from this trigger"; exit 1; }
+
+          if ! printf '%s' "$TAG" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$TAG' is not a valid semver tag (vMAJOR.MINOR.PATCH[-pre])"
+            exit 1
+          fi
+
+          LATEST="$(git tag -l 'v*' --sort=-v:refname | head -n 1)"
+          if [ -n "$LATEST" ] && [ "${{ github.event_name }}" != "push" ]; then
+            if [ "$TAG" = "$LATEST" ]; then
+              echo "::error::$TAG has already been released."; exit 1
+            fi
+            NEWEST="$(printf '%s\n%s\n' "$LATEST" "$TAG" | sort -V | tail -n 1)"
+            if [ "$NEWEST" != "$TAG" ]; then
+              echo "::error::$TAG is older than the latest release $LATEST."; exit 1
+            fi
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag
+        if: ${{ github.event_name != 'push' }}
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a "${{ steps.check.outputs.tag }}" -m "${{ steps.check.outputs.tag }}"
+          git push origin "${{ steps.check.outputs.tag }}"
+
+  test:
+    needs: [validate]
+    if: ${{ always() && (needs.validate.result == 'success' || inputs.dry_run) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.tag || github.ref }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go test ./... -count=1
+
+  # ── Publish fan-out: the three jobs below run in parallel ────────────────
+
+  binaries:
+    needs: [validate, test]
+    if: ${{ always() && needs.test.result == 'success' && (needs.validate.result == 'success' || inputs.dry_run) }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          # Resolves to the pushed tag, the tag release-please just created,
-          # or the current branch for a manual dry run.
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ needs.validate.outputs.tag || github.ref }}
           fetch-depth: 0
 
       - name: Set up Go
@@ -46,30 +129,6 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: Run tests
-        run: go test ./... -count=1
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        if: ${{ !inputs.dry_run }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Log in to GHCR
-        if: ${{ !inputs.dry_run }}
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Import GPG signing key
         if: ${{ !inputs.dry_run }}
         id: gpg
@@ -78,11 +137,12 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: Release
+      # Docker is published by its own parallel job.
+      - name: Build and publish archives
         uses: goreleaser/goreleaser-action@v6
         with:
           version: '~> v2'
-          args: ${{ inputs.dry_run && 'release --snapshot --clean --skip=publish,sign' || 'release --clean' }}
+          args: ${{ inputs.dry_run && 'release --snapshot --clean --skip=publish,sign,docker' || 'release --clean --skip=docker' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
@@ -92,33 +152,110 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: dist/
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
           retention-days: 7
 
-  helm:
-    needs: release
-    if: ${{ !inputs.dry_run }}
+  docker:
+    needs: [validate, test]
+    if: ${{ !inputs.dry_run && needs.test.result == 'success' }}
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ inputs.tag || github.ref_name }}
+      TAG: ${{ needs.validate.outputs.tag }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ needs.validate.outputs.tag }}
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            thre4dripper/tidefetch
+            ghcr.io/thre4dripper/tidefetch
+          tags: |
+            type=semver,pattern={{version}},value=${{ env.TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.TAG }}
+          labels: |
+            org.opencontainers.image.title=tidefetch
+            org.opencontainers.image.description=Terminal UI and self-hosted web UI for the aria2 download engine
+            org.opencontainers.image.source=https://github.com/Thre4dripper/tidefetch
+            org.opencontainers.image.licenses=MIT
+
+      - name: Build and push images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: packaging/docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  helm:
+    needs: [validate, test]
+    if: ${{ !inputs.dry_run && needs.test.result == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.validate.outputs.tag }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.tag }}
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
-      - name: Package chart
+      - name: Package and publish chart
         run: |
           VERSION="${TAG#v}"
           helm package packaging/helm/tidefetch \
             --version "$VERSION" --app-version "$VERSION" \
             --destination dist-chart
-
-      - name: Publish chart to GHCR
-        run: |
           echo "${{ secrets.GITHUB_TOKEN }}" \
             | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           helm push dist-chart/tidefetch-*.tgz oci://ghcr.io/thre4dripper/charts
+
+  # A release makes the rolling preview stale: delete the draft and close the
+  # release PR if this run did not come from merging it.
+  cleanup:
+    needs: [validate, binaries]
+    if: ${{ !inputs.dry_run && needs.binaries.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete "next" draft and stale release PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete next --repo "$GITHUB_REPOSITORY" --yes || true
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            PR="$(gh pr list --repo "$GITHUB_REPOSITORY" --head release/next --state open --json number --jq '.[0].number' || true)"
+            if [ -n "$PR" ]; then
+              gh pr close "$PR" --repo "$GITHUB_REPOSITORY" \
+                --comment "Superseded by ${{ needs.validate.outputs.tag }} — a fresh release PR will open on the next push to main." \
+                --delete-branch || true
+            fi
+          fi

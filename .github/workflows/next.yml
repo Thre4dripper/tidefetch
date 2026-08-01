@@ -1,0 +1,147 @@
+name: Next release preview
+
+# Keeps two things in sync with main on every push:
+#   - a draft release "next" carrying real, downloadable snapshot binaries
+#   - a single release PR (branch release/next) whose body links those binaries
+# Merging the PR releases the version in its title. Pushing a tag or running
+# the Release workflow manually takes priority — both close this PR.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: next-preview
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    # Skip the release PR's own merge commit — release.yml handles that push.
+    # Merge commits carry the PR title in the body, so match anywhere.
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          !contains(github.event.head_commit.message, 'release: v') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Collect unreleased commits
+        id: log
+        run: |
+          set -euo pipefail
+          LATEST="$(git tag -l 'v*' --sort=-v:refname | head -n 1)"
+
+          if [ -n "$LATEST" ]; then
+            RANGE="$LATEST..HEAD"
+            HEADING="Unreleased changes since $LATEST"
+            # Default proposal: patch bump. Edit the PR title to override.
+            NEXT="$(printf '%s' "$LATEST" | awk -F. '{sub(/^v/,"",$1); printf "v%d.%d.%d", $1, $2, $3+1}')"
+          else
+            RANGE=""
+            HEADING="Unreleased changes (no tagged release yet)"
+            NEXT="v0.1.0"
+          fi
+
+          COUNT="$(git log --oneline $RANGE | wc -l | tr -d ' ')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" = "0" ]; then
+            echo "Nothing unreleased."
+            exit 0
+          fi
+
+          {
+            echo "## $HEADING"
+            echo
+            git log $RANGE --no-merges --pretty=format:'- %s (%h)'
+            echo
+            echo
+            echo "---"
+            echo
+            echo "These builds are unreleased and unsigned. Download them to test"
+            echo "\`main\` before cutting a version. Release by merging the release"
+            echo "PR, pushing a tag, or running the Release workflow."
+          } > notes.md
+
+      - name: Build artifacts
+        if: steps.log.outputs.count != '0'
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: '~> v2'
+          args: release --snapshot --clean --skip=publish,sign,docker
+
+      - name: Update the "next" draft release
+        if: steps.log.outputs.count != '0'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: next
+          name: Next (unreleased)
+          body_path: notes.md
+          draft: true
+          prerelease: true
+          files: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
+
+      - name: Open or refresh the release PR
+        if: steps.log.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT: ${{ steps.log.outputs.next }}
+        run: |
+          set -euo pipefail
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # The branch only exists to host the PR; an empty commit is enough.
+          git checkout -B release/next
+          git commit --allow-empty -m "release: $NEXT"
+          git push -f origin release/next
+
+          DRAFT_URL="$(gh release view next --repo "$GITHUB_REPOSITORY" --json url --jq .url 2>/dev/null || true)"
+          ASSETS="$(gh release view next --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[] | "- [" + .name + "](" + .url + ")"' 2>/dev/null || true)"
+
+          {
+            echo "Merging this PR tags and publishes **$NEXT** to GitHub Releases,"
+            echo "Docker Hub, GHCR, Helm and Homebrew."
+            echo
+            echo "To release a different version, edit this PR's title (the"
+            echo "\`vX.Y.Z\` in it is what gets tagged). Pushing a tag manually or"
+            echo "dispatching the Release workflow supersedes this PR and closes it."
+            echo
+            echo "### 📦 Preview builds (from the [\"next\" draft release]($DRAFT_URL))"
+            echo
+            echo "$ASSETS"
+            echo
+            cat notes.md
+          } > pr-body.md
+
+          EXISTING="$(gh pr list --repo "$GITHUB_REPOSITORY" --head release/next --state open --json number --jq '.[0].number' || true)"
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --title "release: $NEXT" --body-file pr-body.md
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --base main --head release/next \
+              --title "release: $NEXT" --body-file pr-body.md
+          fi
