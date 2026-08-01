@@ -33,7 +33,7 @@
   const commands = {
     script: 'curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh',
     brew: 'brew install thre4dripper/tap/tidefetch',
-    docker: 'docker run -d -p 8210:8210 -v tidefetch:/config thre4dripper/tidefetch',
+    docker: 'docker run -d -p 8210:8210 -v tidefetch:/config ghcr.io/thre4dripper/tidefetch',
     go: 'go install github.com/Thre4dripper/tidefetch/cmd/tidefetch@latest'
   };
 
@@ -87,7 +87,7 @@
     { name: 'Install script', cmd: 'curl -fsSL …/install.sh | sh' },
     { name: 'PowerShell', cmd: 'irm …/install.ps1 | iex' },
     { name: 'Homebrew', cmd: 'brew install tidefetch' },
-    { name: 'Docker', cmd: 'docker pull thre4dripper/tidefetch' },
+    { name: 'Docker', cmd: 'docker pull ghcr.io/…/tidefetch' },
     { name: 'GHCR', cmd: 'docker pull ghcr.io/…/tidefetch' },
     { name: 'Helm', cmd: 'helm install oci://…/tidefetch' },
     { name: 'Go', cmd: 'go install …/tidefetch' }

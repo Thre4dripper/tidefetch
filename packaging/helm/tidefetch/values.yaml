@@ -1,5 +1,5 @@
 image:
-  repository: thre4dripper/tidefetch
+  repository: ghcr.io/thre4dripper/tidefetch
   tag: ""            # defaults to .Chart.AppVersion
   pullPolicy: IfNotPresent
 

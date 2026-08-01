@@ -25,7 +25,7 @@ no cloud account.
 ```sh
 brew install thre4dripper/tap/tidefetch   # macOS / Linuxbrew
 sudo apt install tidefetch                # Debian / Ubuntu
-docker run -d -p 8210:8210 thre4dripper/tidefetch
+docker run -d -p 8210:8210 ghcr.io/thre4dripper/tidefetch
 ```
 
 Then:

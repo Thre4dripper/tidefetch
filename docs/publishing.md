@@ -209,14 +209,14 @@ when the template is added or renamed.
 ```sh
 curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh && tidefetch version
 brew install thre4dripper/tap/tidefetch && tidefetch version
-docker run --rm thre4dripper/tidefetch:0.3.0 version
+docker run --rm ghcr.io/thre4dripper/tidefetch:0.3.0 version
 helm show chart oci://ghcr.io/thre4dripper/charts/tidefetch | grep version
 ```
 
 Check the multi-arch manifest:
 
 ```sh
-docker buildx imagetools inspect thre4dripper/tidefetch:0.3.0
+docker buildx imagetools inspect ghcr.io/thre4dripper/tidefetch:0.3.0
 ```
 
 ## Rolling back

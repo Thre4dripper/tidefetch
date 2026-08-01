@@ -125,20 +125,20 @@ docker run -d \
   -e TIDEFETCH_PASSWORD='replace-this-password' \
   -v tidefetch-config:/config \
   -v /srv/downloads:/downloads \
-  thre4dripper/tidefetch:latest
+  ghcr.io/thre4dripper/tidefetch:latest
 ```
 
-Images are published to both registries, multi-arch for `amd64` and `arm64`:
+Images are multi-arch — Docker pulls the right build for your CPU automatically:
 
 ```sh
-docker pull thre4dripper/tidefetch:latest      # Docker Hub
-docker pull ghcr.io/thre4dripper/tidefetch     # GitHub Container Registry
+docker pull ghcr.io/thre4dripper/tidefetch:latest   # GitHub Container Registry
+docker pull ijlalahmad/tidefetch:latest             # Docker Hub mirror
 ```
 
 Pin a version for anything you care about:
 
 ```sh
-docker pull thre4dripper/tidefetch:0.2.0
+docker pull ghcr.io/thre4dripper/tidefetch:0.2.0
 ```
 
 ### Docker Compose
@@ -146,7 +146,7 @@ docker pull thre4dripper/tidefetch:0.2.0
 ```yaml
 services:
   tidefetch:
-    image: thre4dripper/tidefetch:latest
+    image: ghcr.io/thre4dripper/tidefetch:latest
     container_name: tidefetch
     restart: unless-stopped
     environment:
@@ -168,7 +168,7 @@ podman run -d --name tidefetch --replace \
   -e TIDEFETCH_PASSWORD='replace-this-password' \
   -v tidefetch-config:/config:Z \
   -v /srv/downloads:/downloads:Z \
-  thre4dripper/tidefetch:latest
+  ghcr.io/thre4dripper/tidefetch:latest
 ```
 
 ### Kubernetes (Helm)

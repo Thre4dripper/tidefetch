@@ -129,7 +129,7 @@ release:
     brew install thre4dripper/tap/tidefetch
 
     # Containers
-    docker pull thre4dripper/tidefetch:{{ .Version }}
+    docker pull ghcr.io/thre4dripper/tidefetch:{{ .Version }}
     ```
 
     Full documentation: https://thre4dripper.github.io/tidefetch/docs/installation
