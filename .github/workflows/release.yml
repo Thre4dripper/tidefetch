@@ -218,8 +218,21 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: VERSION=${{ steps.meta.outputs.version }}
+          # Provenance is attested below instead; buildx's own attestations add
+          # unknown/unknown entries to the manifest list that registries display.
+          provenance: false
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # A full cache export can exceed the 10 GB repo limit and abort an
+          # otherwise good build, so failures here are not fatal.
+          cache-to: type=gha,mode=max,ignore-error=true
+
+      - name: Attest image provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/thre4dripper/tidefetch
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
 
   helm:
     needs: [validate, test]

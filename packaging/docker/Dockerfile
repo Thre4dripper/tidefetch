@@ -1,20 +1,26 @@
 # ── Stage 1: build the web UI ─────────────────────────────────────────
-FROM node:22-alpine AS webbuild
+# Pinned to BUILDPLATFORM: the bundle is architecture-independent, and running
+# node under QEMU for arm64 costs minutes for an identical result.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS webbuild
 WORKDIR /src/web
 COPY web/package.json web/package-lock.json* ./
-RUN npm install --no-fund --no-audit
+RUN npm ci --no-fund --no-audit
 COPY web/ .
 RUN npm run build
 
-# ── Stage 2: build the Go binary (web UI embedded) ────────────────────
-FROM golang:1.26-alpine AS gobuild
+# ── Stage 2: cross-compile the Go binary (web UI embedded) ────────────
+# Also native: Go cross-compiles, so the compiler never runs emulated.
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS gobuild
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 COPY --from=webbuild /src/web/dist ./web/dist
 ARG VERSION=dev
-RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" \
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" \
     -o /out/tidefetch ./cmd/tidefetch
 
 # ── Stage 3: runtime with the aria2 engine ────────────────────────────
