@@ -6,7 +6,7 @@ the file exists **and** its `enabled` flag is set to `true` in
 
 | File | Slot | Status |
 | --- | --- | --- |
-| `terminal-overview.png` | Hero + Interfaces (TUI) | **Needed** |
+| `terminal-overview.jpg` | Hero + Interfaces (TUI) | Present |
 | `web-dashboard.png` | Interfaces (web UI) | Present |
 | `hero-demo.webm` / `.mp4` | Hero video (optional, replaces the hero image) | Optional |
 | `task-detail.png` | Transfer detail | Optional |
@@ -84,7 +84,11 @@ detail panel is visible, then screenshot the page.
 ## Guidelines
 
 - Export at 2× where possible; the site downscales.
-- Keep PNG under ~400 KB (`pngquant --quality 65-85` or `sips`).
+- Terminal captures compress badly as PNG — anti-aliased text over gradients
+  produced a 1.5 MB file. Save those as JPEG instead:
+  `sips -s format jpeg -s formatOptions 92 shot.png --out terminal-overview.jpg`
+  (1.5 MB → 243 KB with no visible loss). Flat-colour web captures stay PNG.
+- Keep any single image under ~400 KB.
 - Scrub anything private: RPC secrets, private tracker URLs, usernames, real
   file paths and internal hostnames.
 - The hero video autoplays muted — no audio track needed.

@@ -211,7 +211,7 @@
 
     <div class="surface-stage">
       {#if surface === 'terminal'}
-        <MediaFrame item={media.terminal} />
+        <MediaFrame item={media.terminalAlt.enabled ? media.terminalAlt : media.terminal} />
         <div class="surface-side">
           <span class="side-tag primary">For individuals</span>
           <h3>A CLI tool, not a service</h3>

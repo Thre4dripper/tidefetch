@@ -7,10 +7,9 @@ export type ImageMedia = {
   tone: 'terminal' | 'dashboard' | 'detail' | 'mobile';
 };
 
-// The web capture is a real browser screenshot. The terminal capture is left
-// as a placeholder: rendering a TUI to HTML drifts on font metrics, so it
-// should be a genuine screenshot. See public/media/README.md, then flip
-// `enabled` to true.
+// Both captures are real screenshots. Terminal output must never be recreated
+// in HTML — block and braille glyphs drift on font metrics. See
+// public/media/README.md for how to retake them.
 export const media = {
   hero: {
     enabled: false,
@@ -18,12 +17,22 @@ export const media = {
     webm: './media/hero-demo.webm',
     poster: './media/hero-poster.webp'
   },
+  // Hero: wide overview with the sidebar visible.
   terminal: {
-    enabled: false,
-    src: './media/terminal-overview.png',
-    alt: 'Tidefetch terminal UI showing active downloads, speed graphs, piece map and disk usage',
+    enabled: true,
+    src: './media/terminal-overview.jpg',
+    alt: 'Tidefetch terminal UI with four active downloads, a completed download, speed graphs, piece map and disk usage',
     label: 'Terminal interface',
-    dimensions: '2400 × 1400 PNG · 172×40 cells',
+    dimensions: '1715 × 1008 JPEG · 211×50 cells',
+    tone: 'terminal'
+  } satisfies ImageMedia,
+  // Interfaces section: a different view so the page doesn't repeat the hero.
+  terminalAlt: {
+    enabled: false,
+    src: './media/terminal-detail.jpg',
+    alt: 'Tidefetch download details with file list, piece map and per-task options',
+    label: 'Download details',
+    dimensions: '1695 × 895 JPEG · details view',
     tone: 'terminal'
   } satisfies ImageMedia,
   web: {
