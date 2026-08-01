@@ -60,26 +60,8 @@ signs:
       - --detach-sign
       - ${artifact}
 
-dockers_v2:
-  - id: tidefetch
-    images:
-      - thre4dripper/tidefetch
-      - ghcr.io/thre4dripper/tidefetch
-    tags:
-      - "{{ .Version }}"
-      - "{{ .Major }}.{{ .Minor }}"
-      - "{{ if not .Prerelease }}latest{{ end }}"
-    platforms:
-      - linux/amd64
-      - linux/arm64
-    dockerfile: packaging/docker/Dockerfile.release
-    labels:
-      org.opencontainers.image.title: tidefetch
-      org.opencontainers.image.description: Terminal UI and self-hosted web UI for the aria2 download engine
-      org.opencontainers.image.version: "{{ .Version }}"
-      org.opencontainers.image.revision: "{{ .FullCommit }}"
-      org.opencontainers.image.source: https://github.com/Thre4dripper/tidefetch
-      org.opencontainers.image.licenses: MIT
+# Container images are built by the `docker` job in .github/workflows/release.yml
+# with buildx, so it can run in parallel with this and reuse the layer cache.
 
 homebrew_casks:
   - name: tidefetch
