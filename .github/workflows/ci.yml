@@ -49,6 +49,9 @@ jobs:
 
       - run: npm --prefix ${{ matrix.app }} ci
       - run: npm --prefix ${{ matrix.app }} run build
+      - name: Verify embedded assets are current
+        if: matrix.app == 'web'
+        run: git diff --exit-code -- web/dist
 
   docs:
     runs-on: ubuntu-latest

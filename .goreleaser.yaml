@@ -4,13 +4,6 @@ version: 2
 
 project_name: tidefetch
 
-before:
-  hooks:
-    - go mod tidy
-    # The web UI is embedded via go:embed, so it must be built first.
-    - npm --prefix web ci
-    - npm --prefix web run build
-
 builds:
   - id: tidefetch
     main: ./cmd/tidefetch
