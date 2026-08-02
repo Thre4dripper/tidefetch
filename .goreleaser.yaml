@@ -59,6 +59,13 @@ checksum:
 homebrew_casks:
   - name: tidefetch
     binaries: [tidefetch]
+    # The tap hosts multiple tools: each project owns exactly one file under
+    # Casks/ and never touches its neighbours.
+    directory: Casks
+    commit_msg_template: "tidefetch: update cask to {{ .Tag }}"
+    commit_author:
+      name: github-actions[bot]
+      email: github-actions[bot]@users.noreply.github.com
     repository:
       owner: Thre4dripper
       name: homebrew-tap

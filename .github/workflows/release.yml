@@ -90,14 +90,19 @@ jobs:
           git tag -a "${{ steps.check.outputs.tag }}" -m "${{ steps.check.outputs.tag }}"
           git push origin "${{ steps.check.outputs.tag }}"
 
+  # Runs alongside validate: main HEAD is what gets tagged, so testing the
+  # branch and testing the tag are the same commit.
   test:
-    needs: [validate]
-    if: ${{ always() && (needs.validate.result == 'success' || inputs.dry_run) }}
+    if: >-
+      ${{ inputs.dry_run ||
+          github.event_name != 'pull_request' ||
+          (github.event.pull_request.merged == true &&
+           github.event.pull_request.head.ref == 'release/next') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.validate.outputs.tag || github.ref }}
+          ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
