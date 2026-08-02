@@ -1,215 +1,177 @@
-# ⬡ tidefetch
+<div align="center">
+  <img src="site/public/favicon.svg" width="72" alt="Tidefetch logo" />
 
-**A fast terminal UI + self-hosted web UI for [aria2](https://aria2.github.io)** —
-the download engine that speaks HTTP(S), FTP, SFTP, BitTorrent and Metalink.
+  # tideFetch
 
-[Product site](https://thre4dripper.github.io/tidefetch/) ·
-[Documentation](docs/index.md) ·
-[Installation](docs/installation.md) ·
-[Homelab guide](docs/homelab.md)
+  **A keyboard-first download manager for [aria2](https://aria2.github.io).**<br />
+  A polished terminal UI for your own machine, plus a self-hosted web UI for headless servers and homelabs.
 
-One binary, three faces:
+  [![CI](https://github.com/Thre4dripper/tidefetch/actions/workflows/ci.yml/badge.svg)](https://github.com/Thre4dripper/tidefetch/actions/workflows/ci.yml)
+  [![Release](https://img.shields.io/github/v/release/Thre4dripper/tidefetch?display_name=tag&sort=semver)](https://github.com/Thre4dripper/tidefetch/releases/latest)
+  [![License: MIT](https://img.shields.io/badge/license-MIT-5ed8e7.svg)](LICENSE)
+  [![Container](https://img.shields.io/badge/container-GHCR-8c82ff.svg)](https://github.com/Thre4dripper/tidefetch/pkgs/container/tidefetch)
 
-- `tidefetch` — a polished, mouse-driven **TUI** with live charts, queue
-  control, history and an IDM-style workflow
-- `tidefetch serve` — a modern, resource-friendly **web UI** for homelabs
-  and remote servers (WebSocket deltas, virtualized lists, canvas piece
-  maps — built to stay smooth where older aria2 frontends choke)
-- `packaging/docker` — an **all-in-one container**: web UI + aria2 engine,
-  one port, two volumes, done
+  [Website](https://thre4dripper.github.io/tidefetch/) ·
+  [Documentation](https://thre4dripper.github.io/tidefetch/docs/getting-started) ·
+  [Install](https://thre4dripper.github.io/tidefetch/docs/installation) ·
+  [Releases](https://github.com/Thre4dripper/tidefetch/releases)
+</div>
 
-```
- ⬡ tidefetch   ▼ 12.4 MB/s  ▲ 1.2 MB/s  ▁▂▃▅▇█▆▅▃▂  active 3 · queued 2 · stopped 8      ● aria2 1.37.0
-  1 All   2 Active   3 Queued   4 Finished  │  ＋ Add   ⟲ History   ⚙ Settings
-┃ ⇣ ubuntu-24.04.2-desktop-arm64.iso                                              ⧉ ACTIVE
-  ██████████████████████▌───────────────────────  46.8%  2.5 GB / 5.3 GB  12.4 MB/s  eta 3m52s  seeds 74
-  ⏸ linux-6.9.tar.xz                                                                PAUSED
-  ████████▏──────────────────────────────────────  17.2%  24 MB / 142 MB  paused
-```
+![Tidefetch terminal UI showing active downloads, progress, speed graphs, piece map and disk usage](site/public/media/terminal-overview.jpg)
 
-tidefetch is an independent project powered by aria2 and is not affiliated
-with the aria2 project.
+Tidefetch wraps the fast, protocol-rich aria2 engine in one Go binary. Run
+`tidefetch` for an interactive TUI, or run `tidefetch serve` when the download
+box lives elsewhere and you want to manage it from a browser.
 
-## Features
+## ✨ Why Tidefetch?
 
-**Both UIs**
+- **Built for the terminal** — keyboard-first navigation, full mouse support,
+  live braille graphs, piece maps, disk telemetry and a built-in file browser.
+- **Every aria2 protocol** — HTTP(S), FTP, SFTP, BitTorrent, Metalink, magnets
+  and multi-mirror downloads.
+- **Complete queue control** — add, inspect, pause, retry, reorder, remove,
+  select torrent files and tune per-download or global options.
+- **Persistent workflow** — sessions survive restarts, and categorized history
+  makes completed downloads easy to find and run again.
+- **A real web interface** — WebSocket updates, virtualized lists, responsive
+  controls, bcrypt authentication and strict browser security headers.
+- **Small and self-hostable** — native binaries, multi-architecture containers,
+  Docker Compose, Helm, Kubernetes and Unraid assets.
 
-- Add anything aria2 supports — HTTP(S), FTP, SFTP, magnets, `.torrent`,
-  `.metalink`/`.meta4`, multi-mirror
-- Full queue control: pause/resume (single or all), reorder, remove,
-  remove + delete files, retry failed
-- Link inspector — IDM-style pre-download check: resumability, real size,
-  server filename, content type
-- Advanced per-download options: rename, split/connections, speed limits,
-  file allocation (`none`/`prealloc`/`trunc`/`falloc`), checksum, referer,
-  custom headers, proxy, user agent, seed ratio, add-paused
-- Live per-download details: files (with selection), peers, servers,
-  piece map, speeds
-- Global aria2 settings editor (curated groups + all 100-plus raw options)
-- Persistent download history with automatic IDM-style categories,
-  search, filter, one-click re-download
-- Daemon management: attaches to a running aria2, or spawns one with
-  session persistence — downloads keep running when the UI is closed
+## 🚀 Quick Install
 
-**Terminal UI** — btop-style mouse support, sparkline charts, disk gauge,
-built-in file browser, keyboard-first workflow.
-
-**Web UI** — dark glass design, WebSocket push (no per-tab polling storms),
-virtualized task list, canvas piece map (a million pieces render as ≤240
-buckets), server-side link probe, password login with bcrypt + rate
-limiting, strict CSP, same-origin guards.
-
-## Install
-
-The repository does not have a tagged release yet, so the install script has
-nothing to download until `v0.1.0` ships. Building from source works today.
-
-Once a release is published:
+**macOS and Linux**
 
 ```sh
-# macOS, Linux, FreeBSD
 curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh
+```
 
-# Windows (PowerShell)
+**Windows**
+
+```powershell
 irm https://thre4dripper.github.io/tidefetch/install.ps1 | iex
 ```
 
-The script detects your platform, verifies the download against the release
-checksums and needs no runtime. Homebrew, Docker, Helm and `go install` are also
-supported — see the [installation guide](docs/installation.md).
+The installer detects your OS and CPU, downloads the matching release,
+verifies its SHA-256 checksum and places `tidefetch` on your `PATH`. The Windows
+installer also installs aria2 when needed.
 
-Native builds require [aria2](https://aria2.github.io) (`brew install aria2` /
-`apt install aria2`), Go 1.26.1, and Node 20+.
-
-```sh
-# from a checkout
-make build && ./tidefetch          # TUI
-./tidefetch serve                  # web UI on http://127.0.0.1:8210
-
-# or install into $GOPATH/bin
-make install
-```
-
-### Docker (all-in-one, self-hosted)
+Prefer Homebrew?
 
 ```sh
-cd packaging/docker
-cp .env.example .env               # replace the password in .env
-docker compose up -d --build
-# → http://<host>:8210
+brew install thre4dripper/tap/tidefetch
 ```
 
-The image bundles the aria2 engine (installed from the Alpine package;
-aria2 is GPL-2.0-or-later — see its [source](https://github.com/aria2/aria2)).
-Volumes: `/config` (settings, session, history) and `/downloads`.
-
-Production examples: [Docker](docs/deployment/docker.md) ·
-[Swarm](docs/deployment/swarm.md) ·
-[Kubernetes/k3s](docs/deployment/kubernetes.md) ·
-[Unraid](docs/deployment/unraid.md) ·
-[reverse proxies](docs/reverse-proxy.md)
-
-## Usage
+Then verify everything is wired up:
 
 ```sh
-tidefetch                                  # open the TUI
-tidefetch https://example.com/file.iso     # open and start downloading
-tidefetch "magnet:?xt=urn:btih:..."        # magnets work too
-tidefetch -url ws://nas:6800/jsonrpc -secret s3cret   # remote daemon
-tidefetch serve -host 0.0.0.0 -password s3cret        # LAN web UI
-tidefetch doctor                           # diagnose your setup
+tidefetch doctor
 ```
 
-On first run a config file is created at `~/.config/tidefetch/config.json`
-with a random RPC secret. History and the aria2 session live in
-`~/.local/share/tidefetch/`. (Configs from the old *aria2tui* name migrate
-automatically.)
+See the full [installation guide](https://thre4dripper.github.io/tidefetch/docs/installation)
+for upgrades, manual downloads, checksums and source builds.
 
-### Web UI security
+## ⌨️ Use the TUI
 
-- Loopback binds work without a password; any other bind **requires**
-  `-password` (stored as a bcrypt hash) or an explicit `-no-auth` for
-  reverse-proxy setups.
-- The aria2 RPC secret never reaches the browser — the UI talks only to
-  the authenticated tidefetch backend.
+```sh
+tidefetch                                      # open the terminal UI
+tidefetch https://example.com/archive.iso      # add a URL immediately
+tidefetch "magnet:?xt=urn:btih:..."            # magnets work too
+tidefetch doctor                               # diagnose configuration and RPC
+```
 
-## TUI keys
+Tidefetch can attach to an existing aria2 RPC endpoint or spawn and manage a
+local daemon. Press `?` in the app for the complete keyboard and mouse guide.
 
-| Key | Action |
+## 🌐 Run the Web UI
+
+![Tidefetch web dashboard showing downloads, throughput and status](site/public/media/web-dashboard.png)
+
+For a local browser session:
+
+```sh
+tidefetch serve
+# http://127.0.0.1:8210
+```
+
+For an all-in-one server deployment, the container bundles aria2:
+
+```sh
+docker run -d \
+  --name tidefetch \
+  --restart unless-stopped \
+  -p 8210:8210 \
+  -e TIDEFETCH_PASSWORD='replace-this-password' \
+  -v tidefetch-config:/config \
+  -v /srv/downloads:/downloads \
+  ghcr.io/thre4dripper/tidefetch:latest
+```
+
+The image is multi-architecture (`amd64` and `arm64`); Docker selects the
+correct build automatically.
+
+Deployment guides: [Docker & Podman](https://thre4dripper.github.io/tidefetch/docs/deployment/docker) ·
+[Kubernetes & k3s](https://thre4dripper.github.io/tidefetch/docs/deployment/kubernetes) ·
+[Unraid](https://thre4dripper.github.io/tidefetch/docs/deployment/unraid) ·
+[Reverse proxy & TLS](https://thre4dripper.github.io/tidefetch/docs/reverse-proxy)
+
+## 🧭 Two Interfaces, One Queue
+
+| Terminal UI | Web UI |
 | --- | --- |
-| `j/k` `↑/↓` | move · `g/G` top/bottom · `ctrl+d/u` half page |
-| `1–4` | filter: All / Active / Queued / Finished |
-| `space` / `p` | pause · resume selected |
-| `P` / `R` | pause all · resume all |
-| `enter` / `i` | details (info · files · peers · servers) |
-| `a` | add downloads (URLs, magnets, torrent files) |
-| `x` / `D` | remove · remove **and delete files** |
-| `r` | retry a failed download |
-| `J/K` | move in queue |
-| `S` | cycle sort |
-| `/` | search; `esc` clears |
-| `o` / `y` | open folder · copy URL/magnet |
-| `t` / `f` | side panel · file browser |
-| `[` `]` / `{` `}` | global ↓ / ↑ speed limit −/+ |
-| `h` / `s` / `?` | history · settings · help |
-| `q` / `Q` | quit · quit **and** shut the daemon down |
+| Best for desktops, SSH and tmux | Best for NAS boxes, VPS hosts and homelabs |
+| Starts with `tidefetch` | Starts with `tidefetch serve` |
+| Keyboard and mouse driven | Browser and touch friendly |
+| Attaches to or spawns aria2 | Keeps aria2 credentials server-side |
 
-## Standalone RPC client
+Both interfaces control the same aria2 engine and expose the same downloads,
+files, history and settings. Choose whichever screen is closest to you.
 
-The aria2 JSON-RPC client is an independent package with no UI
-dependencies — use it in your own tools:
+## 📚 Documentation
+
+The README is the short tour. The product site contains the maintained,
+searchable guides:
+
+- [Getting started](https://thre4dripper.github.io/tidefetch/docs/getting-started)
+- [Installation](https://thre4dripper.github.io/tidefetch/docs/installation)
+- [Configuration and command flags](https://thre4dripper.github.io/tidefetch/docs/configuration)
+- [Data and persistence](https://thre4dripper.github.io/tidefetch/docs/data-and-persistence)
+- [Homelab operations](https://thre4dripper.github.io/tidefetch/docs/homelab)
+- [Troubleshooting](https://thre4dripper.github.io/tidefetch/docs/troubleshooting)
+
+## 🧩 Go RPC Client
+
+The UI-independent [`pkg/aria2`](pkg/aria2) package exposes aria2's JSON-RPC
+methods and WebSocket notifications for other Go programs:
 
 ```go
 import "github.com/Thre4dripper/tidefetch/pkg/aria2"
 
-client, _ := aria2.Dial(ctx, "ws://127.0.0.1:6800/jsonrpc", "secret")
-gid, _ := client.AddURI(ctx, []string{"https://example.org/file.iso"},
-    aria2.Options{"dir": "/downloads", "split": "16"})
-
-for n := range client.Notifications() {
-    fmt.Println(n.Method, n.GID) // aria2.onDownloadComplete abc123…
-}
+client, err := aria2.Dial(ctx, "ws://127.0.0.1:6800/jsonrpc", "secret")
 ```
 
-Covers the full method surface: add (URI/torrent/metalink), tell*, pause,
-remove, queue position, per-download and global options, global stats,
-`system.multicall`, session save/shutdown, and event notifications over
-WebSocket.
-
-## Project layout
-
-```
-cmd/tidefetch/     entry point (tui · serve · doctor)
-pkg/aria2/         standalone aria2 JSON-RPC client
-internal/tui/      Bubble Tea terminal UI
-internal/server/   web backend: broker, REST API, WebSocket hub, auth
-internal/daemon/   aria2c discovery / spawn / attach
-internal/config/   settings (+ legacy migration)
-internal/history/  persistent categorized history
-web/               Svelte 5 + Vite frontend (embedded via go:embed)
-site/              standalone product/showcase site + media slots
-docs/              install, configuration and homelab operations
-packaging/         Docker, Swarm, Kubernetes and Unraid artifacts
-```
-
-## Development
+## 🛠️ Development
 
 ```sh
-make build      # web UI + binary (embedded assets)
-make backend    # Go only, reuses last web build
-make web        # frontend only
-make site       # type-check + build the standalone product site
-make site-dev   # product site development server
-make test       # unit + integration tests (integration skips without aria2c)
-make docker     # build the container image
+make build      # embedded web UI + Go binary
+make test       # unit and aria2 integration tests
+make site       # type-check and build the product site
+make docker     # local container image
 ```
 
-Frontend dev loop: `cd web && npm run dev` proxies `/api` to a running
-`tidefetch serve` on :8210.
+The main code lives under `cmd/`, `internal/` and `pkg/`; `web/` is the
+embedded dashboard, while `site/` is the independently deployed product and
+documentation site.
 
-## License
+## 📄 License
 
-MIT for everything in this repository. The aria2 engine is a separate
-GPL-2.0-or-later project; tidefetch talks to it over JSON-RPC and does not
-link against it. Container images that bundle aria2 include its license
-and point to its source.
+Tidefetch is available under the [MIT License](LICENSE). aria2 is a separate
+GPL-2.0-or-later project; Tidefetch communicates with it over JSON-RPC and does
+not link against it. Container images install aria2 from Alpine's package
+repository and retain its licensing information.
+
+---
+
+<div align="center">
+  Independent project powered by aria2 — not affiliated with the aria2 project.
+</div>
