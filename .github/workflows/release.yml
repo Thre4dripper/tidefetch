@@ -137,17 +137,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
 
-      # Binds every artifact to this workflow run and commit. Verify with:
-      #   gh attestation verify tidefetch_linux_amd64.tar.gz --repo Thre4dripper/tidefetch
-      - name: Attest build provenance
-        if: ${{ !inputs.dry_run }}
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-path: |
-            dist/*.tar.gz
-            dist/*.zip
-            dist/checksums.txt
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -164,6 +153,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TAG: ${{ needs.validate.outputs.tag }}
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -225,13 +216,6 @@ jobs:
           # otherwise good build, so failures here are not fatal.
           cache-to: type=gha,mode=max,ignore-error=true
 
-      - name: Attest image provenance
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-name: ghcr.io/thre4dripper/tidefetch
-          subject-digest: ${{ steps.build.outputs.digest }}
-          push-to-registry: true
-
   helm:
     needs: [validate, test]
     if: ${{ !inputs.dry_run && needs.test.result == 'success' }}
@@ -257,11 +241,44 @@ jobs:
             | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           helm push dist-chart/tidefetch-*.tgz oci://ghcr.io/thre4dripper/charts
 
+  attest-binaries:
+    needs: [binaries]
+    if: ${{ !inputs.dry_run && needs.binaries.result == 'success' && !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
+
+  attest-image:
+    needs: [docker]
+    if: ${{ needs.docker.result == 'success' && !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Attest image provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/thre4dripper/tidefetch
+          subject-digest: ${{ needs.docker.outputs.digest }}
+          push-to-registry: true
+
   # A release makes the rolling preview stale: delete the draft and close the
   # release PR if this run did not come from merging it.
   cleanup:
-    needs: [validate, binaries]
-    if: ${{ !inputs.dry_run && needs.binaries.result == 'success' }}
+    needs: [validate, binaries, docker, helm]
+    if: >-
+      ${{ !inputs.dry_run &&
+          needs.binaries.result == 'success' &&
+          needs.docker.result == 'success' &&
+          needs.helm.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Delete "next" draft and stale release PR
