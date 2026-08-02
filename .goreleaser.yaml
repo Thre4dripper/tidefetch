@@ -106,6 +106,8 @@ release:
   github:
     owner: Thre4dripper
     name: tidefetch
+  # A rerun resumes the same release instead of failing on duplicate assets.
+  replace_existing_artifacts: true
   draft: false
   prerelease: auto
   footer: |
