@@ -269,13 +269,29 @@ jobs:
       - name: Delete "next" draft and stale release PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASED: ${{ needs.validate.outputs.tag }}
         run: |
           gh release delete next --repo "$GITHUB_REPOSITORY" --yes || true
+
           if [ "${{ github.event_name }}" != "pull_request" ]; then
-            PR="$(gh pr list --repo "$GITHUB_REPOSITORY" --head release/next --state open --json number --jq '.[0].number' || true)"
-            if [ -n "$PR" ]; then
-              gh pr close "$PR" --repo "$GITHUB_REPOSITORY" \
-                --comment "Superseded by ${{ needs.validate.outputs.tag }} — a fresh release PR will open on the next push to main." \
-                --delete-branch || true
+            INFO="$(gh pr list --repo "$GITHUB_REPOSITORY" --head release/next --state open \
+              --json number,title --jq '.[0] | "\(.number) \(.title)"' 2>/dev/null || true)"
+            if [ -n "$INFO" ]; then
+              PR="${INFO%% *}"
+              PRV="$(printf '%s' "$INFO" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?' | head -n1)"
+              NEWEST="$(printf '%s\n%s\n' "$RELEASED" "$PRV" | sort -V | tail -n1)"
+              # A PR proposing a newer version covers commits this release does
+              # not include (pushed mid-release) — leave that one alone.
+              if [ -z "$PRV" ] || [ "$NEWEST" = "$RELEASED" ]; then
+                gh pr close "$PR" --repo "$GITHUB_REPOSITORY" \
+                  --comment "Superseded by $RELEASED — a fresh release PR will open on the next push to main." \
+                  --delete-branch || true
+              else
+                echo "PR #$PR proposes $PRV (newer than $RELEASED); keeping it open."
+              fi
             fi
           fi
+
+          # Regenerate the preview for anything that landed mid-release.
+          # No-ops when nothing is unreleased.
+          gh workflow run next.yml --repo "$GITHUB_REPOSITORY" || true
