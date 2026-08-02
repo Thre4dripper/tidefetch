@@ -20,33 +20,37 @@ concurrency:
 
 jobs:
   preview:
-    # Skip the release PR's own merge commit — release.yml handles that push.
-    # Merge commits carry the PR title in the body, so match anywhere.
-    if: >-
-      ${{ github.event_name == 'workflow_dispatch' ||
-          !contains(github.event.head_commit.message, 'release: v') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Detect a release PR merge
+        id: guard
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          count="$(gh api "/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" \
+            --jq '[.[] | select(.head.ref == "release/next" and .merged_at != null)] | length')"
+          if [ "$count" != "0" ]; then
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+            echo 'Release PR merge detected; release.yml owns this commit.'
+          fi
+
       - name: Check out repository
+        if: steps.guard.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Go
+        if: steps.guard.outputs.skip != 'true'
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-
       - name: Collect unreleased commits
         id: log
+        if: steps.guard.outputs.skip != 'true'
         run: |
           set -euo pipefail
           LATEST="$(git tag -l 'v*' --sort=-v:refname | head -n 1)"
@@ -84,14 +88,14 @@ jobs:
           } > notes.md
 
       - name: Build artifacts
-        if: steps.log.outputs.count != '0'
+        if: steps.guard.outputs.skip != 'true' && steps.log.outputs.count != '0'
         uses: goreleaser/goreleaser-action@v6
         with:
           version: '~> v2'
           args: release --snapshot --clean --skip=publish,sign,docker
 
       - name: Update the "next" draft release
-        if: steps.log.outputs.count != '0'
+        if: steps.guard.outputs.skip != 'true' && steps.log.outputs.count != '0'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: next
@@ -105,7 +109,7 @@ jobs:
             dist/checksums.txt
 
       - name: Open or refresh the release PR
-        if: steps.log.outputs.count != '0'
+        if: steps.guard.outputs.skip != 'true' && steps.log.outputs.count != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEXT: ${{ steps.log.outputs.next }}
