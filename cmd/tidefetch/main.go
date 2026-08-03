@@ -29,8 +29,9 @@ import (
 	"github.com/Thre4dripper/tidefetch/internal/tui"
 )
 
-// Overridden at release time via -ldflags; kept in sync by release-please.
-var version = "0.2.0" // x-release-please-version
+// Overridden at build time via -ldflags; this is only the fallback for
+// `go install` and plain `go build`.
+var version = "0.2.0"
 
 func main() {
 	args := os.Args[1:]
