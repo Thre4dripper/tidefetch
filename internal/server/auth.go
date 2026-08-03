@@ -160,12 +160,14 @@ func (a *authenticator) handleLogin(w http.ResponseWriter, r *http.Request) {
 	a.mu.Lock()
 	delete(a.failures, ip)
 	a.mu.Unlock()
-	a.issueSession(w)
-	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "authRequired": true})
+	tok := a.issueSession(w)
+	// The token mirrors the cookie so scripts and dashboards can use
+	// `Authorization: Bearer` instead of a cookie jar.
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "authRequired": true, "token": tok})
 }
 
-// issueSession creates a session token and sets its cookie.
-func (a *authenticator) issueSession(w http.ResponseWriter) {
+// issueSession creates a session token, sets its cookie and returns it.
+func (a *authenticator) issueSession(w http.ResponseWriter) string {
 	tok := randomToken()
 	a.mu.Lock()
 	a.sessions[tok] = time.Now().Add(30 * 24 * time.Hour)
@@ -179,6 +181,7 @@ func (a *authenticator) issueSession(w http.ResponseWriter) {
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   30 * 24 * 3600,
 	})
+	return tok
 }
 
 // setPassword updates the stored hash, enabling auth if it was off.
