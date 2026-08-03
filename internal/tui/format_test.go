@@ -55,16 +55,12 @@ func TestSparkline(t *testing.T) {
 	if got := []rune(s); len(got) != 8 {
 		t.Errorf("len = %d", len(got))
 	}
-	// The scale carries headroom so a steady transfer never renders as a
-	// solid filled bar, which reads as a progress indicator. The peak should
-	// therefore sit high but stop short of the full block.
+	// The chart scales to the window maximum, so the peak sample reaches the
+	// full block — anything less reads as a clipped top row.
 	runes := []rune(s)
 	peak := runes[len(runes)-1]
-	if peak == '█' {
-		t.Errorf("peak should leave headroom, got full block: %q", s)
-	}
-	if peak != '▆' && peak != '▇' {
-		t.Errorf("peak should be near the top, got %q in %q", peak, s)
+	if peak != '█' {
+		t.Errorf("peak should reach the full block, got %q in %q", peak, s)
 	}
 	// Values must increase monotonically with the samples.
 	for i := 2; i < len(runes); i++ {
