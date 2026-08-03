@@ -54,7 +54,8 @@ func humanETA(remaining int64, speed int64) string {
 }
 
 // gauge renders a smooth progress bar of the given cell width using eighth blocks.
-func gauge(frac float64, width int) string {
+// The optional style overrides the filled colour (status-tinted bars).
+func gauge(frac float64, width int, style ...lipgloss.Style) string {
 	if width < 1 {
 		return ""
 	}
@@ -87,7 +88,11 @@ func gauge(frac float64, width int) string {
 	if full < width && int(rem*8) > 0 {
 		on++
 	}
-	return styleGaugeOn.Render(string([]rune(s)[:on])) + styleGaugeOff.Render(string([]rune(s)[on:]))
+	fill := styleGaugeOn
+	if len(style) > 0 {
+		fill = style[0]
+	}
+	return fill.Render(string([]rune(s)[:on])) + styleGaugeOff.Render(string([]rune(s)[on:]))
 }
 
 var sparkChars = []rune("▁▂▃▄▅▆▇█")

@@ -29,22 +29,23 @@ var (
 	styleFetchName lipgloss.Style
 	styleLogo      lipgloss.Style
 
-	styleTitle    lipgloss.Style
-	styleText     lipgloss.Style
-	styleDim      lipgloss.Style
-	styleFaint    lipgloss.Style
-	styleAccent   lipgloss.Style
-	styleAccent2  lipgloss.Style
-	styleGood     lipgloss.Style
-	styleWarn     lipgloss.Style
-	styleBad      lipgloss.Style
-	styleCyan     lipgloss.Style
-	styleDownArr  lipgloss.Style
-	styleUpArr    lipgloss.Style
-	styleSpark    lipgloss.Style
-	styleSelBar   lipgloss.Style
-	styleRowSel   lipgloss.Style
-	styleGaugeOn  lipgloss.Style
+	styleTitle   lipgloss.Style
+	styleText    lipgloss.Style
+	styleDim     lipgloss.Style
+	styleFaint   lipgloss.Style
+	styleAccent  lipgloss.Style
+	styleAccent2 lipgloss.Style
+	styleGood    lipgloss.Style
+	styleWarn    lipgloss.Style
+	styleBad     lipgloss.Style
+	styleCyan    lipgloss.Style
+	styleDownArr lipgloss.Style
+	styleUpArr   lipgloss.Style
+	styleSpark   lipgloss.Style
+	styleSelBar  lipgloss.Style
+	styleRowSel  lipgloss.Style
+	styleGaugeOn lipgloss.Style
+
 	styleGaugeOff lipgloss.Style
 
 	styleTabActive lipgloss.Style
@@ -73,7 +74,6 @@ var (
 	styleBoxTitle    lipgloss.Style
 	styleGraphDown   lipgloss.Style
 	styleGraphUp     lipgloss.Style
-	styleGraphTask   lipgloss.Style
 
 	// clickable footer buttons
 	styleBtn    lipgloss.Style
@@ -158,20 +158,20 @@ func applyTheme(name string) {
 	styleBoxTitle = lipgloss.NewStyle().Foreground(cBright).Bold(true)
 	styleGraphDown = lipgloss.NewStyle().Foreground(cAccent)
 	styleGraphUp = lipgloss.NewStyle().Foreground(cAccent2)
-	styleGraphTask = lipgloss.NewStyle().Foreground(cGreen)
 
 	styleBtn = lipgloss.NewStyle().Foreground(cText).Background(cSurface2).Padding(0, 2, 0, 1)
 	styleBtnKey = lipgloss.NewStyle().Foreground(cAccent2).Background(cSurface2).Bold(true).Padding(0, 0, 0, 2)
 }
 
-// statusStyle picks color + icon for an aria2 download status.
+// statusStyle picks color + icon for an aria2 download status. Active uses
+// the brand accent so every element of a downloading row matches the gauge.
 func statusStyle(status string, seeding bool) (lipgloss.Style, string, string) {
 	switch status {
 	case "active":
 		if seeding {
 			return styleCyan, "⇡", "SEED"
 		}
-		return styleGood, "⇣", "ACTIVE"
+		return styleAccent, "⇣", "ACTIVE"
 	case "waiting":
 		return styleAccent2, "◌", "QUEUED"
 	case "paused":
@@ -184,4 +184,26 @@ func statusStyle(status string, seeding bool) (lipgloss.Style, string, string) {
 		return styleDim, "–", "REMOVED"
 	}
 	return styleDim, "•", status
+}
+
+// graphStyle tints per-task charts. Only a live download draws in colour;
+// settled tasks keep their history as quiet context.
+func graphStyle(status string, seeding bool) lipgloss.Style {
+	if status == "active" && !seeding {
+		return styleSpark
+	}
+	return styleDim
+}
+
+// gaugeStyle keeps saturated bars for live downloads only — a list full of
+// finished tasks must not out-shout the one that is moving. Paused is the
+// exception: it waits on the user, so its bar keeps a muted warning tint.
+func gaugeStyle(status string) lipgloss.Style {
+	switch status {
+	case "active":
+		return styleGaugeOn
+	case "paused":
+		return styleWarn
+	}
+	return lipgloss.NewStyle().Foreground(cDim)
 }

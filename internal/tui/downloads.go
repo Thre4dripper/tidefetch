@@ -485,14 +485,26 @@ func (a *App) renderRow(st aria2.Status, selected bool, w int) string {
 	}
 	graph := ""
 	if hist := a.gidHist[st.GID]; len(hist) > 1 {
-		graph = " " + styleGraphTask.Render(sparkline(downsampleHistory(hist, 14), 14))
+		graph = " " + graphStyle(st.Status, bool(st.Seeder)).Render(sparkline(downsampleHistory(hist, 14), 14))
 	}
-	right := styleDim.Render(sizes) + "  " + stStyle.Render(tail) + graph
+	// Live numbers and failures deserve colour; settled states already carry
+	// their hue in the compact status badge. Paused keeps its tint because it
+	// is waiting on the user.
+	tailStyle := styleDim
+	switch st.Status {
+	case aria2.StatusActive:
+		tailStyle = stStyle
+	case aria2.StatusPaused:
+		tailStyle = styleWarn
+	case aria2.StatusError:
+		tailStyle = styleBad
+	}
+	right := styleDim.Render(sizes) + "  " + tailStyle.Render(tail) + graph
 	gaugeW := w - 4 - 7 - lipgloss.Width(right) - 4
 	if gaugeW < 10 {
 		gaugeW = 10
 	}
-	line2 := "  " + gauge(frac, gaugeW) + " " + styleText.Render(pct) + "  " + right
+	line2 := "  " + gauge(frac, gaugeW, gaugeStyle(st.Status)) + " " + styleText.Render(pct) + "  " + right
 
 	// Line 3 — context: location · source · connections / error detail
 	var info string
@@ -545,21 +557,23 @@ func (a *App) renderSidebar(w, h int) string {
 		if hist := a.gidHist[st.GID]; len(hist) > 1 {
 			series := downsampleHistory(hist, inner*2)
 			for _, gl := range brailleGraph(series, inner, 4, 0) {
-				lines = append(lines, styleGraphTask.Render(gl))
+				lines = append(lines, graphStyle(st.Status, bool(st.Seeder)).Render(gl))
 			}
 			speedLabel := "▼ " + humanSpeed(st.DownloadSpeed.Int())
+			speedStyle := stStyle.Bold(true)
 			if st.Status != aria2.StatusActive {
 				speedLabel = "final"
+				speedStyle = styleDim
 			}
 			lines = append(lines,
-				styleDownArr.Render(speedLabel)+
+				speedStyle.Render(speedLabel)+
 					styleDim.Render("  · peak "+humanSpeed(int64(peakOf(hist)))),
 			)
 		} else {
 			lines = append(lines, "")
 		}
 		lines = append(lines,
-			gauge(st.Progress(), inner-7)+fmt.Sprintf(" %5.1f%%", st.Progress()*100),
+			gauge(st.Progress(), inner-7, gaugeStyle(st.Status))+fmt.Sprintf(" %5.1f%%", st.Progress()*100),
 		)
 		ctx := humanETA(st.TotalLength.Int()-st.CompletedLength.Int(), st.DownloadSpeed.Int())
 		meta := "eta " + ctx + " · conn " + fmt.Sprint(st.Connections.Int())

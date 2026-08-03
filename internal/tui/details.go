@@ -321,20 +321,21 @@ func (d *detailsModel) renderInfo(w, h int, hist []float64) string {
 
 	lines := []string{
 		"",
-		"  " + gauge(frac, minInt(w-12, 60)) + fmt.Sprintf(" %5.1f%%", frac*100),
+		"  " + gauge(frac, minInt(w-12, 60), gaugeStyle(st.Status)) + fmt.Sprintf(" %5.1f%%", frac*100),
 	}
 	if len(hist) > 1 {
 		gw := minInt(w-6, 72)
 		lines = append(lines, "")
 		series := downsampleHistory(hist, gw*2)
+		tint := graphStyle(st.Status, bool(st.Seeder))
 		for _, gl := range brailleGraph(series, gw, 4, 0) {
-			lines = append(lines, "  "+styleGraphTask.Render(gl))
+			lines = append(lines, "  "+tint.Render(gl))
 		}
 		graphLabel := "▼ " + humanSpeed(st.DownloadSpeed.Int())
 		if st.Status != aria2.StatusActive {
 			graphLabel = "final"
 		}
-		lines = append(lines, "  "+styleDownArr.Render(graphLabel)+
+		lines = append(lines, "  "+tint.Bold(true).Render(graphLabel)+
 			styleDim.Render("  · peak "+humanSpeed(int64(peakOf(hist)))))
 	}
 	lines = append(lines,
