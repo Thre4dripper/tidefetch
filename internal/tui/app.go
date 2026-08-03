@@ -1068,8 +1068,12 @@ type footerButton struct {
 func (a *App) footerButtons() []footerButton {
 	switch a.view {
 	case viewDownloads:
+		pauseLabel := "pause"
+		if st := a.selected(); st != nil && st.Status == aria2.StatusPaused {
+			pauseLabel = "resume"
+		}
 		return []footerButton{
-			{"a", "add"}, {"space", "pause"}, {"enter", "details"}, {"x", "remove"},
+			{"a", "add"}, {"space", pauseLabel}, {"enter", "details"}, {"x", "remove"},
 			{"r", "retry"}, {"/", "search"}, {"t", "panel"}, {"S", "sort"},
 			{"h", "history"}, {"s", "settings"}, {"?", "help"}, {"q", "quit"},
 		}
@@ -1080,9 +1084,13 @@ func (a *App) footerButtons() []footerButton {
 			{"ctrl+s", "start"}, {"esc", "cancel"},
 		}
 	case viewDetails:
+		pauseLabel := "pause"
+		if a.details.status.Status == aria2.StatusPaused {
+			pauseLabel = "resume"
+		}
 		return []footerButton{
 			{"tab", "next panel"}, {"enter", "edit option"}, {"space", "toggle file"},
-			{"+", "limit +"}, {"-", "limit −"}, {"p", "pause"},
+			{"+", "limit +"}, {"-", "limit −"}, {"p", pauseLabel},
 			{"x", "remove"}, {"D", "delete files"}, {"o", "open"}, {"y", "copy"}, {"esc", "back"},
 		}
 	case viewHistory:
