@@ -32,7 +32,9 @@ var themes = []Theme{
 		Name: "surge", Label: "Surge",
 		Ink:    "#0C0A1A",
 		Accent: "#7C6CF0", Accent2: "#5A9CF8",
-		Green: "#3DDC97", Yellow: "#F5C744", Red: "#F0637C", Cyan: "#43C6D8",
+		// Status hues sit in the palette's own pastel register so badges read
+		// as part of the theme instead of stock terminal colours.
+		Green: "#5CCFA5", Yellow: "#E7C36A", Red: "#F0637C", Cyan: "#43C6D8",
 		Text: "#C8CCE8", Bright: "#EDEFFB", Dim: "#7B80A8", Faint: "#3D4163",
 		Surface: "#191B28", Surface2: "#232638", SelBG: "#2A2D45",
 	},
@@ -40,7 +42,10 @@ var themes = []Theme{
 		Name: "tide", Label: "Tide",
 		Ink:    "#0C0E11",
 		Accent: "#5ED8E7", Accent2: "#8C82FF",
-		Green: "#B8FF3D", Yellow: "#F0C445", Red: "#FF795F", Cyan: "#5ED8E7",
+		// The web brand's lime is a hero colour, not a badge colour — in dense
+		// rows it overpowers the soft cyan, so green stays sea-toned here. Cyan
+		// is teal-shifted so SEED never mirrors the accent.
+		Green: "#6FCF97", Yellow: "#E5C07B", Red: "#FF795F", Cyan: "#54C6B5",
 		Text: "#CDD5CF", Bright: "#EEF3EF", Dim: "#8B938E", Faint: "#4B5450",
 		Surface: "#14181C", Surface2: "#1E2429", SelBG: "#1C2227",
 	},
