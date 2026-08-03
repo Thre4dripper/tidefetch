@@ -44,6 +44,12 @@
         "file": "reverse-proxy.md"
       },
       {
+        "slug": "api",
+        "title": "HTTP API",
+        "description": "REST and WebSocket reference for dashboards, scripts and custom integrations.",
+        "file": "api.md"
+      },
+      {
         "slug": "troubleshooting",
         "title": "Troubleshooting",
         "description": "Diagnostics, common failures and safe recovery.",

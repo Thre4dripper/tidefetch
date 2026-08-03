@@ -135,6 +135,7 @@ searchable guides:
 - [Getting started](https://thre4dripper.github.io/tidefetch/docs/getting-started)
 - [Installation](https://thre4dripper.github.io/tidefetch/docs/installation)
 - [Configuration and command flags](https://thre4dripper.github.io/tidefetch/docs/configuration)
+- [HTTP API for dashboards and scripts](https://thre4dripper.github.io/tidefetch/docs/api)
 - [Data and persistence](https://thre4dripper.github.io/tidefetch/docs/data-and-persistence)
 - [Homelab operations](https://thre4dripper.github.io/tidefetch/docs/homelab)
 - [Troubleshooting](https://thre4dripper.github.io/tidefetch/docs/troubleshooting)
