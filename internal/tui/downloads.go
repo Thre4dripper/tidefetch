@@ -662,13 +662,19 @@ func (a *App) renderSidebar(w, h int) string {
 		blocks = append(blocks, titledBox("Log", lines, w, styleBoxBorder, styleBoxTitle))
 	}
 
-	joined := strings.Join(blocks, "\n")
-	// Clip to available height.
-	rows := strings.Split(joined, "\n")
-	if len(rows) > h {
-		rows = rows[:h]
+	// Fit whole blocks to the height budget — a half-drawn box reads as a
+	// rendering bug, so anything that does not fully fit is dropped.
+	var fitted []string
+	used := 0
+	for _, b := range blocks {
+		bh := lipgloss.Height(b)
+		if used+bh > h {
+			break
+		}
+		fitted = append(fitted, b)
+		used += bh
 	}
-	return strings.Join(rows, "\n")
+	return strings.Join(fitted, "\n")
 }
 
 // peakOf returns the maximum sample.
