@@ -42,7 +42,6 @@ const LANG_ALIAS: Record<string, string> = {
   caddyfile: 'nginx',
   caddy: 'nginx',
   ps1: 'powershell',
-  text: 'bash',
   '': 'bash'
 };
 
@@ -106,13 +105,17 @@ export function renderDoc(source: string): RenderedDoc {
     const label = declared || 'sh';
 
     let body: string;
-    try {
-      body = highlighter.codeToHtml(text, {
-        lang: language,
-        theme: 'github-dark-default'
-      });
-    } catch {
+    if (declared === 'text') {
       body = `<pre class="shiki"><code>${escapeHtml(text)}</code></pre>`;
+    } else {
+      try {
+        body = highlighter.codeToHtml(text, {
+          lang: language,
+          theme: 'github-dark-default'
+        });
+      } catch {
+        body = `<pre class="shiki"><code>${escapeHtml(text)}</code></pre>`;
+      }
     }
 
     return (
