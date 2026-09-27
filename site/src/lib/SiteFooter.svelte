@@ -20,10 +20,12 @@
     </div>
     <div class="footer-col">
       <span>Docs</span>
-      <a href={href('docs/getting-started')}>Getting Started</a>
+      <a href={href('docs/getting-started')}>Overview</a>
       <a href={href('docs/installation')}>Installation</a>
-      <a href={href('docs/homelab')}>Homelab Guide</a>
-      <a href={href('docs/troubleshooting')}>Troubleshooting</a>
+      <a href={href('docs/quick-start')}>Quick start</a>
+      <a href={href('docs/terminal-ui')}>Terminal UI</a>
+      <a href={href('docs/web-ui')}>Web UI</a>
+      <a href={href('docs/api')}>HTTP API</a>
     </div>
     <div class="footer-col">
       <span>Project</span>

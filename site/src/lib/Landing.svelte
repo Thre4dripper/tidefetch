@@ -2,6 +2,7 @@
   import {
     ArrowRight,
     BookOpen,
+    Braces,
     Check,
     Clipboard,
     CloudCog,
@@ -12,11 +13,14 @@
     HardDrive,
     Keyboard,
     Layers3,
+    LifeBuoy,
     Network,
     Package,
+    Rocket,
     Server,
     ServerCog,
     ShieldCheck,
+    SlidersHorizontal,
     SquareTerminal,
     Workflow,
     Zap
@@ -30,18 +34,22 @@
   let copied = $state(false);
   let surface = $state<'terminal' | 'web'>('terminal');
 
+  // Every command here is copy-paste complete: the container refuses to
+  // listen on all interfaces without a password, so the Docker line sets one.
   const commands = {
     script: 'curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh',
     brew: 'brew install thre4dripper/tap/tidefetch',
-    docker: 'docker run -d -p 8210:8210 -v tidefetch:/config ghcr.io/thre4dripper/tidefetch',
+    docker:
+      'docker run -d -p 8210:8210 -e TIDEFETCH_PASSWORD=change-me -v tidefetch-config:/config -v /srv/downloads:/downloads ghcr.io/thre4dripper/tidefetch:latest',
     go: 'go install github.com/Thre4dripper/tidefetch/cmd/tidefetch@latest'
   };
 
   const installNotes = {
-    script: 'macOS, Linux and FreeBSD. Detects your platform, verifies checksums, no runtime needed. Windows: irm .../install.ps1 | iex',
-    brew: 'macOS and Linuxbrew, with aria2 pulled in as a dependency.',
-    docker: 'All-in-one image with the aria2 engine baked in. Helm chart available.',
-    go: 'Straight from source. Install aria2 separately, then run tidefetch doctor.'
+    script:
+      'macOS and Linux on amd64, arm64 and armv7. Verifies the SHA-256 checksum; no runtime needed. Windows: irm https://tidefetch.ijlalahmad.dev/install.ps1 | iex',
+    brew: 'macOS. Installs the cask from the thre4dripper/tap tap and pulls in aria2 as a dependency.',
+    docker: 'All-in-one image with aria2 bundled, for amd64 and arm64. Replace the password and the downloads path.',
+    go: 'Builds from source with Go 1.26.1 or newer. Install aria2 separately, then run tidefetch doctor.'
   };
 
   const features = [
@@ -83,14 +91,24 @@
     }
   ];
 
-  const registries = [
-    { name: 'Install script', cmd: 'curl -fsSL …/install.sh | sh' },
-    { name: 'PowerShell', cmd: 'irm …/install.ps1 | iex' },
-    { name: 'Homebrew', cmd: 'brew install tidefetch' },
-    { name: 'Docker', cmd: 'docker pull ghcr.io/…/tidefetch' },
-    { name: 'GHCR', cmd: 'docker pull ghcr.io/…/tidefetch' },
-    { name: 'Helm', cmd: 'helm install oci://…/tidefetch' },
-    { name: 'Go', cmd: 'go install …/tidefetch' }
+  const channels = [
+    { name: 'Install script', cmd: 'curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh', href: href('docs/installation#install-script') },
+    { name: 'PowerShell', cmd: 'irm https://tidefetch.ijlalahmad.dev/install.ps1 | iex', href: href('docs/installation#install-script') },
+    { name: 'Homebrew (macOS)', cmd: 'brew install thre4dripper/tap/tidefetch', href: href('docs/installation#homebrew') },
+    { name: 'Container image', cmd: 'docker pull ghcr.io/thre4dripper/tidefetch:latest', href: href('docs/installation#container-image') },
+    { name: 'Helm chart', cmd: 'helm install tidefetch oci://ghcr.io/thre4dripper/charts/tidefetch', href: href('docs/deployment/kubernetes#helm-chart') },
+    { name: 'Go', cmd: 'go install github.com/Thre4dripper/tidefetch/cmd/tidefetch@latest', href: href('docs/installation#go-toolchain') }
+  ];
+
+  const guides = [
+    { icon: BookOpen, title: 'Overview', copy: 'What Tidefetch is and how the pieces fit together.', href: href('docs/getting-started') },
+    { icon: Package, title: 'Installation', copy: 'Script, Homebrew, container image, Helm or Go.', href: href('docs/installation') },
+    { icon: Rocket, title: 'Quick start', copy: 'Your first download in five minutes.', href: href('docs/quick-start') },
+    { icon: SquareTerminal, title: 'Terminal UI', copy: 'Every screen, shortcut and theme.', href: href('docs/terminal-ui') },
+    { icon: Globe2, title: 'Web UI', copy: 'Screens, sign-in and browser preferences.', href: href('docs/web-ui') },
+    { icon: SlidersHorizontal, title: 'Configuration', copy: 'Flags, environment and the config file.', href: href('docs/configuration') },
+    { icon: Braces, title: 'HTTP API', copy: 'REST and WebSocket for scripts and dashboards.', href: href('docs/api') },
+    { icon: LifeBuoy, title: 'Troubleshooting', copy: 'Diagnostics and safe recovery.', href: href('docs/troubleshooting') }
   ];
 
   const deployments = [
@@ -99,7 +117,7 @@
     { icon: Workflow, name: 'Swarm', copy: 'Secret-backed stack file', href: href('docs/deployment/swarm') },
     { icon: CloudCog, name: 'Kubernetes', copy: 'Helm chart and manifests', href: href('docs/deployment/kubernetes') },
     { icon: ServerCog, name: 'Unraid', copy: 'Community Apps template', href: href('docs/deployment/unraid') },
-    { icon: Cpu, name: 'Bare metal', copy: 'systemd unit, no Docker', href: href('docs/homelab') },
+    { icon: Cpu, name: 'Bare metal', copy: 'systemd unit, no Docker', href: href('docs/deployment/systemd') },
     { icon: Globe2, name: 'Reverse proxy', copy: 'Caddy, Nginx, Traefik', href: href('docs/reverse-proxy') }
   ];
 
@@ -269,11 +287,11 @@
     </div>
 
     <div class="registry-grid">
-      {#each registries as reg (reg.name)}
-        <div class="registry">
-          <strong>{reg.name}</strong>
-          <code>{reg.cmd}</code>
-        </div>
+      {#each channels as channel (channel.name)}
+        <a class="registry" href={channel.href}>
+          <strong>{channel.name}</strong>
+          <code>{channel.cmd}</code>
+        </a>
       {/each}
     </div>
   </section>
@@ -309,6 +327,30 @@
       <div><span>PRIVATE RPC</span><b>aria2 engine</b></div>
       <ArrowRight size={15} />
       <div><span>PERSISTENT</span><b>Your storage</b></div>
+    </div>
+  </section>
+
+  <!-- ── Documentation ────────────────────────────────────────────── -->
+  <section class="section" id="docs">
+    <div class="section-head">
+      <span class="kicker">Documentation</span>
+      <h2>Precise guides,<br />from first run to production.</h2>
+      <p>
+        Short pages that each answer one question: how to install, what every key does,
+        how to expose the web UI safely, and how to drive it all from a script.
+      </p>
+    </div>
+    <div class="docs-grid">
+      {#each guides as guide (guide.title)}
+        <a class="docs-card" href={guide.href}>
+          <guide.icon size={19} strokeWidth={1.8} />
+          <strong>{guide.title}</strong>
+          <span>{guide.copy}</span>
+        </a>
+      {/each}
+    </div>
+    <div class="docs-more">
+      <a class="link-arrow" href={href('docs/getting-started')}>Browse all documentation <ArrowRight size={14} /></a>
     </div>
   </section>
 

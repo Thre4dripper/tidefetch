@@ -379,22 +379,24 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
 /* ── Deploy ── */
 .registry-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-top: 26px;
 }
 .registry {
-  display: grid; gap: 5px;
+  display: grid; gap: 6px; align-content: start;
   padding: 13px 15px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 10px;
+  transition: border-color 0.18s, background 0.18s;
 }
+.registry:hover { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.045); }
 .registry strong { font-size: 12.5px; }
 .registry code {
   color: var(--text-faint);
-  font-family: var(--mono); font-size: 10.5px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--mono); font-size: 10px; line-height: 1.6;
+  white-space: pre-wrap; overflow-wrap: anywhere;
 }
 
 .deploy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -424,6 +426,22 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
 .arch-strip span { color: var(--text-faint); font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; }
 .arch-strip b { font-size: 13px; }
 .arch-strip > svg { flex: 0 0 auto; color: var(--text-faint); }
+
+/* ── Documentation ── */
+.docs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.docs-card {
+  display: grid; gap: 8px; align-content: start;
+  padding: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.18s, background 0.18s, transform 0.18s;
+}
+.docs-card:hover { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.045); transform: translateY(-2px); }
+.docs-card > svg { color: var(--cyan); margin-bottom: 4px; }
+.docs-card strong { font-size: 14.5px; }
+.docs-card span { color: var(--text-faint); font-size: 12.5px; line-height: 1.55; }
+.docs-more { display: flex; justify-content: center; margin-top: 26px; }
 
 /* ── Closing ── */
 .closing { position: relative; margin-top: 120px; padding: 96px 24px 110px; text-align: center; border-top: 1px solid var(--border); overflow: hidden; }
@@ -787,7 +805,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
   .product-mock { grid-template-columns: 150px minmax(0, 1fr); min-height: 420px; }
   .mock-detail { display: none; }
   .feature-grid, .deploy-grid { grid-template-columns: repeat(2, 1fr); }
-  .registry-grid { grid-template-columns: repeat(3, 1fr); }
+  .registry-grid, .docs-grid { grid-template-columns: repeat(2, 1fr); }
   .surface-stage { grid-template-columns: 1fr; gap: 26px; }
   .surface-points { grid-template-columns: 1fr 1fr; display: grid; gap: 0 26px; }
 }
@@ -820,7 +838,8 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
   .section { padding-top: 72px; }
   .section-head { margin-bottom: 36px; }
   .feature-grid, .deploy-grid { grid-template-columns: 1fr; }
-  .registry-grid { grid-template-columns: 1fr 1fr; }
+  .registry-grid, .docs-grid { grid-template-columns: 1fr; }
+  .registry code { font-size: 9.5px; }
   .doc-content .table-wrap table { width: max-content; min-width: 100%; max-width: 640px; }
   .surface-points { grid-template-columns: 1fr; }
   .install-panel { grid-template-columns: 1fr; gap: 28px; padding: 26px 20px; }
