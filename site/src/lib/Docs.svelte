@@ -68,7 +68,6 @@
         {/each}
       </div>
     {/each}
-    <a class="nav-github" href={repo} target="_blank" rel="noreferrer"><GitFork size={14} /> Edit on GitHub</a>
   </aside>
 
   <article class="docs-body">
@@ -83,6 +82,10 @@
     <div class="doc-content" bind:this={contentEl}>
       <!-- eslint-disable-next-line svelte/no-at-html-tags — trusted repository markdown -->
       {@html rendered.html}
+    </div>
+
+    <div class="doc-meta">
+      <a class="doc-edit" href={`${repo}/edit/main/docs/${doc.file}`} target="_blank" rel="noreferrer"><GitFork size={13} /> Edit this page on GitHub</a>
     </div>
 
     <footer class="doc-pager">

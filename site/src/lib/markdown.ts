@@ -139,6 +139,10 @@ export function renderDoc(source: string): RenderedDoc {
     return `<blockquote>${body}</blockquote>\n`;
   };
 
-  const html = marked.parse(source, { renderer, async: false }) as string;
+  const html = (marked.parse(source, { renderer, async: false }) as string)
+    // Wide tables scroll inside a wrapper on narrow screens instead of
+    // stretching the page.
+    .replaceAll('<table>', '<div class="table-wrap"><table>')
+    .replaceAll('</table>', '</table></div>');
   return { html, toc };
 }

@@ -485,7 +485,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
 .docs-nav {
   position: sticky; top: calc(var(--header-h) + 32px);
   align-self: start;
-  display: grid; gap: 22px; align-content: start;
+  display: grid; gap: 12px; align-content: start;
   max-height: calc(100vh - var(--header-h) - 64px);
   overflow-y: auto;
   padding-right: 8px;
@@ -498,13 +498,13 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
 .docs-home svg { color: var(--cyan); }
 .nav-section { display: grid; gap: 1px; }
 .nav-label {
-  margin-bottom: 7px;
+  margin-bottom: 5px;
   color: var(--text-faint);
   font-family: var(--mono); font-size: 10px; font-weight: 600;
   letter-spacing: 0.13em; text-transform: uppercase;
 }
 .nav-item {
-  padding: 6.5px 10px;
+  padding: 5.5px 10px;
   margin-left: -10px;
   color: var(--text-dim);
   border-left: 2px solid transparent;
@@ -514,13 +514,6 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
 }
 .nav-item:hover { color: var(--text); background: rgba(255, 255, 255, 0.04); }
 .nav-item.active { color: var(--signal); border-left-color: var(--signal); background: rgba(184, 255, 61, 0.06); font-weight: 600; }
-.nav-github {
-  display: inline-flex; align-items: center; gap: 7px;
-  margin-top: 6px; padding-top: 18px;
-  border-top: 1px solid var(--border);
-  color: var(--text-faint); font-size: 12px;
-}
-.nav-github:hover { color: var(--text); }
 
 .docs-body { min-width: 0; }
 .crumbs { display: flex; align-items: center; gap: 8px; color: var(--text-faint); font-size: 12.5px; }
@@ -561,7 +554,11 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
   border: 1px solid var(--border);
   font-size: 12px; font-weight: 600;
 }
-.doc-content td { padding: 9px 12px; border: 1px solid var(--border); }
+.doc-content td { padding: 9px 12px; border: 1px solid var(--border); vertical-align: top; }
+.doc-content .table-wrap { margin: 18px 0; overflow-x: auto; }
+/* Flags and paths inside table cells stay on one line; the wrapper scrolls if needed. */
+.doc-content td code { white-space: nowrap; }
+.doc-content .table-wrap table { margin: 0; }
 .doc-content blockquote {
   margin: 16px 0; padding: 4px 18px;
   border-left: 3px solid var(--border-strong);
@@ -612,8 +609,11 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
 .alert.caution { border-color: rgba(255, 121, 95, 0.4); background: rgba(255, 121, 95, 0.06); }
 .alert.caution .alert-label { color: var(--coral); }
 
-/* Pager */
-.doc-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 56px; }
+/* Edit link and pager */
+.doc-meta { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--border); }
+.doc-edit { display: inline-flex; align-items: center; gap: 7px; color: var(--text-faint); font-size: 12.5px; }
+.doc-edit:hover { color: var(--text); }
+.doc-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
 .pager {
   display: grid; gap: 5px;
   padding: 16px 18px;
@@ -821,6 +821,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.025em; line-hei
   .section-head { margin-bottom: 36px; }
   .feature-grid, .deploy-grid { grid-template-columns: 1fr; }
   .registry-grid { grid-template-columns: 1fr 1fr; }
+  .doc-content .table-wrap table { width: max-content; min-width: 100%; max-width: 640px; }
   .surface-points { grid-template-columns: 1fr; }
   .install-panel { grid-template-columns: 1fr; gap: 28px; padding: 26px 20px; }
   .command-body { min-height: 120px; }

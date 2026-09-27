@@ -12,6 +12,8 @@ export type DocPage = {
   slug: string;
   title: string;
   description: string;
+  /** Path under docs/, for the per-page edit link. */
+  file: string;
   source: string;
 };
 
@@ -30,6 +32,7 @@ export const docSections: DocSection[] = manifest.map((section) => ({
     slug: p.slug,
     title: p.title,
     description: p.description,
+    file: p.file,
     source: sourceFor(p.file)
   }))
 }));
