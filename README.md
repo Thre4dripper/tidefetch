@@ -56,7 +56,7 @@ The installer detects your OS and CPU, downloads the matching release,
 verifies its SHA-256 checksum and places `tidefetch` on your `PATH`. The Windows
 installer also installs aria2 when needed.
 
-Prefer Homebrew?
+Prefer Homebrew on macOS?
 
 ```sh
 brew install thre4dripper/tap/tidefetch

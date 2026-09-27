@@ -207,7 +207,7 @@ Settings screens edit.
 ### History
 
 ```
-GET    /api/history?q=ubuntu&category=Software
+GET    /api/history?q=ubuntu&category=Programs
 DELETE /api/history/{gid}
 DELETE /api/history
 ```

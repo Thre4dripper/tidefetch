@@ -38,9 +38,6 @@ Add these under **Settings → Secrets and variables → Actions**:
 Helm chart push and provenance attestation. There is no signing key to create,
 rotate or leak.
 
-`GITHUB_TOKEN` is provided automatically and covers GHCR, GitHub Releases and
-the Helm chart push.
-
 ### Companion repositories
 
 Create this once:
@@ -63,7 +60,7 @@ Anyone can verify a download:
 
 ```sh
 gh attestation verify tidefetch_linux_amd64.tar.gz --repo Thre4dripper/tidefetch
-gh attestation verify oci://ghcr.io/thre4dripper/tidefetch:0.2.0 --repo Thre4dripper/tidefetch
+gh attestation verify oci://ghcr.io/thre4dripper/tidefetch:0.1.0 --repo Thre4dripper/tidefetch
 ```
 
 ### Product site on Vercel
@@ -85,7 +82,7 @@ useless until a release exists for it to fetch.
 1. Merge to `main` and let Vercel deploy the site. That publishes
    `https://tidefetch.ijlalahmad.dev/install.sh`. At this point the URL
    resolves but the script has nothing to install yet.
-2. Push the first tag: `git tag v0.2.0 && git push origin v0.2.0`. The `release`
+2. Push the first tag: `git tag v0.1.0 && git push origin v0.1.0`. The `release`
    workflow builds the archives and `checksums.txt` and publishes the release.
 3. Verify from a clean machine or container:
 

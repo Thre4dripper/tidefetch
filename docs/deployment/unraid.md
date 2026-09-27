@@ -120,7 +120,7 @@ predictable rollback, replace `latest` in the Repository field with a fixed
 version such as:
 
 ```text
-ghcr.io/thre4dripper/tidefetch:0.2.0
+ghcr.io/thre4dripper/tidefetch:0.1.0
 ```
 
 Record the previous tag before updating. Appdata survives container replacement.
