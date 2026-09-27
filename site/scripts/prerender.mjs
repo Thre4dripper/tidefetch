@@ -78,8 +78,10 @@ function applyHead(html, meta) {
     .replace(/<title>[\s\S]*?<\/title>/, () => head(meta));
 }
 
+// The data-prerendered attribute lets index.html hide this shell until the
+// app mounts, without touching the <main> the app itself renders.
 function inject(html, body) {
-  return html.replace('<div id="app"></div>', `<div id="app"><main>${body}</main></div>`);
+  return html.replace('<div id="app"></div>', `<div id="app"><main data-prerendered>${body}</main></div>`);
 }
 
 function docNav(activeSlug) {

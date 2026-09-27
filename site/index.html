@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#111316" />
+    <style>
+      /* Painted before the stylesheet arrives, so the first frame is never white. */
+      html { background: #0c0e11; color-scheme: dark; }
+      /* The document inside #app is prerendered for crawlers and no-JS readers.
+         Keep it hidden until the app mounts so nobody sees unstyled markup. */
+      #app > main[data-prerendered] { display: none; }
+    </style>
+    <noscript>
+      <style>
+        #app > main[data-prerendered] {
+          display: block;
+          max-width: 760px;
+          margin: 0 auto;
+          padding: 40px 24px;
+          color: #e8edea;
+          font: 16px/1.6 ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        #app > main[data-prerendered] a { color: #5ed8e7; }
+        #app > main[data-prerendered] pre { overflow-x: auto; }
+      </style>
+    </noscript>
 
     <title>Tidefetch — Terminal UI and Self-Hosted Web UI for aria2</title>
     <meta
