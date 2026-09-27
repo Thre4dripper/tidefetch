@@ -1,84 +1,54 @@
-# Tidefetch documentation
+# Tidefetch
 
-Tidefetch is a terminal UI for the [aria2](https://aria2.github.io) download
-engine, with an optional self-hosted web UI. One static binary, no runtime,
-no cloud account.
+Tidefetch is a download manager for the [aria2](https://aria2.github.io) engine. It ships as one static binary with two interfaces: a keyboard-first terminal UI for the machine in front of you, and a self-hosted web UI for a NAS, VPS or Raspberry Pi that has no screen.
 
-## Start here
+## Who it is for
 
-| Goal | Guide |
+| You are | Use |
 | --- | --- |
-| Install on macOS, Linux, Windows or Docker | [Installation](installation.md) |
-| Understand flags, files and authentication | [Configuration](configuration.md) |
-| Know what to put on a volume | [Data & persistence](data-and-persistence.md) |
-| Run it on a NAS or home server | [Homelab operations](homelab.md) |
-| Put the web UI behind HTTPS | [Reverse proxies](reverse-proxy.md) |
-| Diagnose a problem | [Troubleshooting](troubleshooting.md) |
-| Deploy with Docker or Podman | [Docker](deployment/docker.md) |
-| Deploy a Swarm stack | [Docker Swarm](deployment/swarm.md) |
-| Deploy to Kubernetes or k3s | [Kubernetes](deployment/kubernetes.md) |
-| Install on Unraid | [Unraid](deployment/unraid.md) |
-| Cut and publish a release | [Publishing](publishing.md) |
+| Working in a terminal on your own machine | `tidefetch`, the terminal UI |
+| Running downloads on a headless server or homelab | `tidefetch serve`, the web UI |
+| Scripting downloads or building a dashboard | The [HTTP API](api.md) behind the web UI |
 
-## Quick start
+Both interfaces drive the same aria2 daemon and share one configuration, queue and history, so you can switch between them at any time.
 
-```sh
-brew install thre4dripper/tap/tidefetch   # macOS / Linuxbrew
-sudo apt install tidefetch                # Debian / Ubuntu
-docker run -d -p 8210:8210 ghcr.io/thre4dripper/tidefetch
-```
+## What it does
 
-Then:
+- **Every aria2 protocol.** HTTP(S), FTP, SFTP, BitTorrent, magnet links, Metalink and multi-mirror downloads.
+- **Full queue control.** Add, pause, resume, retry, reorder and remove downloads; pick the files inside a torrent; edit per-download and global aria2 options.
+- **Live telemetry.** Speed graphs, per-download speed history, piece maps, connection and peer lists, disk usage.
+- **Persistent state.** aria2 saves the queue to disk, so downloads survive restarts. Tidefetch keeps a searchable, categorised history of finished downloads.
+- **Safe to expose.** The web UI has bcrypt passwords, HttpOnly sessions, login rate limiting, a same-origin guard and a strict Content Security Policy. The aria2 RPC secret never leaves the server.
+- **Small.** One Go binary and no runtime. Multi-arch container images, a Helm chart, and Compose, Swarm, Unraid and systemd assets.
 
-```sh
-tidefetch            # open the terminal UI
-tidefetch doctor     # verify aria2, config and paths
-tidefetch serve      # optional web UI on :8210
-```
-
-## The two interfaces
-
-**Terminal UI** — the primary interface. Keyboard-first with full mouse
-support, braille throughput graphs, disk gauges, a piece map, file browser and
-the complete aria2 settings surface. It runs anywhere a shell does: over SSH,
-inside tmux, on a Raspberry Pi.
-
-**Web UI** — `tidefetch serve`. The same queue, history and settings rendered
-for a browser, for when downloads live on a headless machine. WebSocket push,
-virtualized lists, bcrypt auth and a strict CSP.
-
-Both talk to the same aria2 daemon and share one config and history file.
-
-## Architecture
+## How it fits together
 
 ```text
 Terminal UI ─┐
-             ├──> Tidefetch ──private JSON-RPC──> aria2 ──> your storage
-Browser ─────┘     (auth, history, API)
+             ├──> tidefetch ──private JSON-RPC──> aria2 ──> your storage
+Browser ─────┘    (auth, history, HTTP API)
 ```
 
-The aria2 RPC secret never reaches the browser. In the container image RPC
-stays on loopback and only port 8210 is exposed.
+Tidefetch starts a local `aria2c` for you, or attaches to one you already run. In the container image aria2 is bundled and its RPC port stays on loopback; only port 8210 is exposed.
 
-## Core concepts
+## Start here
 
-- **Download directory** — where finished files land. Set globally in config or
-  per-task when adding.
-- **Session** — aria2 persists the queue to disk, so downloads survive restarts
-  of both the UI and the daemon.
-- **History** — completed and failed transfers are recorded with IDM-style
-  categories, searchable and re-downloadable.
-- **Daemon mode** — Tidefetch spawns a local `aria2c` automatically, or attaches
-  to an existing one with `-url` and `-secret`.
+1. [Installation](installation.md): the one-line script, Homebrew, the container image, Helm or Go.
+2. [Quick start](quick-start.md): your first download in the terminal UI and the web UI.
+3. [Terminal UI](terminal-ui.md) and [Web UI](web-ui.md): every screen and shortcut.
+4. [Deployment](deployment/docker.md): run `tidefetch serve` as a long-lived service.
 
-## Support baseline
+## Platform support
 
-- **Linux** — primary target for servers and containers
-- **macOS** — native TUI and web server
-- **Windows** — native binary; Windows Terminal recommended
-- **aria2** — 1.36 or newer
-- **Browsers** — current Chrome, Firefox, Safari and Edge
+| Platform | Terminal UI | Web UI server |
+| --- | --- | --- |
+| Linux (amd64, arm64, armv7) | Yes | Yes |
+| macOS (Intel, Apple silicon) | Yes | Yes |
+| Windows (amd64, arm64) | Yes, Windows Terminal recommended | Yes |
+| Docker, Kubernetes, Unraid | No | Yes, aria2 bundled |
 
-Tidefetch is an independent project and is not affiliated with aria2. Tidefetch
-is MIT licensed; aria2 is GPL-2.0-or-later and is used over JSON-RPC as a
-separate process.
+Tidefetch needs aria2 1.36 or newer on the host, except in the container image where it is bundled. The web UI supports current Chrome, Firefox, Safari and Edge.
+
+## Licensing
+
+Tidefetch is MIT licensed. aria2 is a separate GPL-2.0-or-later project; Tidefetch talks to it over JSON-RPC and does not link against it. Tidefetch is an independent project and is not affiliated with aria2.

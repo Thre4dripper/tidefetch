@@ -1,53 +1,105 @@
 [
   {
-    "label": "Introduction",
+    "label": "Getting started",
     "pages": [
       {
         "slug": "getting-started",
-        "title": "Getting Started",
-        "description": "What Tidefetch is and the fastest ways to run it.",
+        "title": "Overview",
+        "description": "What Tidefetch is, who it is for and how the pieces fit together.",
         "file": "index.md"
       },
       {
         "slug": "installation",
         "title": "Installation",
-        "description": "Install Tidefetch with the one-line script, Homebrew, Docker or Helm.",
+        "description": "Install with the one-line script, Homebrew, the container image, Helm or Go.",
         "file": "installation.md"
+      },
+      {
+        "slug": "quick-start",
+        "title": "Quick start",
+        "description": "Your first download in the terminal UI and the web UI.",
+        "file": "quick-start.md"
       }
     ]
   },
   {
-    "label": "Guides",
+    "label": "Using Tidefetch",
     "pages": [
+      {
+        "slug": "terminal-ui",
+        "title": "Terminal UI",
+        "description": "Every screen, shortcut and theme in the terminal interface.",
+        "file": "terminal-ui.md"
+      },
+      {
+        "slug": "web-ui",
+        "title": "Web UI",
+        "description": "Screens, authentication and browser preferences of tidefetch serve.",
+        "file": "web-ui.md"
+      },
       {
         "slug": "configuration",
         "title": "Configuration",
-        "description": "Commands, flags, files, environment variables and authentication.",
+        "description": "Commands, flags, environment variables, files and the config schema.",
         "file": "configuration.md"
+      }
+    ]
+  },
+  {
+    "label": "Deployment",
+    "pages": [
+      {
+        "slug": "deployment/docker",
+        "title": "Docker & Podman",
+        "description": "The all-in-one image with docker run, Compose, secrets and volumes.",
+        "file": "deployment/docker.md"
       },
       {
+        "slug": "deployment/swarm",
+        "title": "Docker Swarm",
+        "description": "A single-replica stack with Docker secrets.",
+        "file": "deployment/swarm.md"
+      },
+      {
+        "slug": "deployment/kubernetes",
+        "title": "Kubernetes & k3s",
+        "description": "Helm chart, raw manifests, storage and probes.",
+        "file": "deployment/kubernetes.md"
+      },
+      {
+        "slug": "deployment/unraid",
+        "title": "Unraid",
+        "description": "Docker template, shares and permissions.",
+        "file": "deployment/unraid.md"
+      },
+      {
+        "slug": "deployment/systemd",
+        "title": "Bare metal (systemd)",
+        "description": "A hardened native service without Docker.",
+        "file": "deployment/systemd.md"
+      }
+    ]
+  },
+  {
+    "label": "Operations",
+    "pages": [
+      {
         "slug": "data-and-persistence",
-        "title": "Data & Persistence",
-        "description": "What is stored, where it lives, and which volumes you need.",
+        "title": "Data & persistence",
+        "description": "What is stored, where it lives and what to back up.",
         "file": "data-and-persistence.md"
       },
       {
         "slug": "homelab",
-        "title": "Homelab Operations",
-        "description": "Storage, networking, backups, upgrades and NAS platforms.",
+        "title": "Homelab operations",
+        "description": "Storage, networking, secrets, backups, upgrades and NAS notes.",
         "file": "homelab.md"
       },
       {
         "slug": "reverse-proxy",
-        "title": "Reverse Proxy & TLS",
+        "title": "Reverse proxy & TLS",
         "description": "Caddy, Nginx, Traefik, Kubernetes Ingress and Tailscale.",
         "file": "reverse-proxy.md"
-      },
-      {
-        "slug": "api",
-        "title": "HTTP API",
-        "description": "REST and WebSocket reference for dashboards, scripts and custom integrations.",
-        "file": "api.md"
       },
       {
         "slug": "troubleshooting",
@@ -58,41 +110,18 @@
     ]
   },
   {
-    "label": "Deployment",
+    "label": "Reference",
     "pages": [
       {
-        "slug": "deployment/docker",
-        "title": "Docker & Podman",
-        "description": "The all-in-one container with volumes and secrets.",
-        "file": "deployment/docker.md"
+        "slug": "api",
+        "title": "HTTP API",
+        "description": "REST and WebSocket reference for scripts, dashboards and integrations.",
+        "file": "api.md"
       },
-      {
-        "slug": "deployment/swarm",
-        "title": "Docker Swarm",
-        "description": "Single-replica stack with Docker secrets.",
-        "file": "deployment/swarm.md"
-      },
-      {
-        "slug": "deployment/kubernetes",
-        "title": "Kubernetes & k3s",
-        "description": "Helm chart, manifests, PVCs and probes.",
-        "file": "deployment/kubernetes.md"
-      },
-      {
-        "slug": "deployment/unraid",
-        "title": "Unraid",
-        "description": "Community Applications template and shares.",
-        "file": "deployment/unraid.md"
-      }
-    ]
-  },
-  {
-    "label": "Project",
-    "pages": [
       {
         "slug": "publishing",
         "title": "Publishing",
-        "description": "Release pipeline and package registry credentials.",
+        "description": "The release pipeline, for maintainers.",
         "file": "publishing.md"
       }
     ]

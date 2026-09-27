@@ -132,9 +132,12 @@ files, history and settings. Choose whichever screen is closest to you.
 The README is the short tour. The product site contains the maintained,
 searchable guides:
 
-- [Getting started](https://tidefetch.ijlalahmad.dev/docs/getting-started)
+- [Overview](https://tidefetch.ijlalahmad.dev/docs/getting-started)
 - [Installation](https://tidefetch.ijlalahmad.dev/docs/installation)
+- [Quick start](https://tidefetch.ijlalahmad.dev/docs/quick-start)
+- [Terminal UI](https://tidefetch.ijlalahmad.dev/docs/terminal-ui) and [Web UI](https://tidefetch.ijlalahmad.dev/docs/web-ui)
 - [Configuration and command flags](https://tidefetch.ijlalahmad.dev/docs/configuration)
+- [Deployment: Docker, Swarm, Kubernetes, Unraid and systemd](https://tidefetch.ijlalahmad.dev/docs/deployment/docker)
 - [HTTP API for dashboards and scripts](https://tidefetch.ijlalahmad.dev/docs/api)
 - [Data and persistence](https://tidefetch.ijlalahmad.dev/docs/data-and-persistence)
 - [Homelab operations](https://tidefetch.ijlalahmad.dev/docs/homelab)

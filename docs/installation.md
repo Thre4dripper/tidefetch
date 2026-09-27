@@ -1,9 +1,20 @@
 # Installation
 
-Tidefetch is a single static binary with no runtime to install. One command
-gets you the terminal UI; add `tidefetch serve` later if you want the web UI.
+Tidefetch is a single static binary. Pick one install method, make sure aria2 is present, then run `tidefetch doctor`.
 
-## Quick install
+## Choose a method
+
+| Method | Platforms | aria2 | Upgrade |
+| --- | --- | --- | --- |
+| [Install script](#install-script) | macOS, Linux, Windows | Windows: installed for you. macOS and Linux: [install it yourself](#install-aria2) | Re-run the script |
+| [Homebrew](#homebrew) | macOS | Installed as a dependency | `brew upgrade tidefetch` |
+| [Container image](#container-image) | Docker, Podman, Kubernetes, Unraid | Bundled | Pull a new tag |
+| [Go toolchain](#go-toolchain) | Anywhere Go runs | Install it yourself | Re-run `go install` |
+| [Manual download](#manual-download) | macOS, Linux, Windows | Install it yourself | Download again |
+
+Tidefetch is not in Winget, Scoop, Chocolatey, APT, DNF, the AUR or Nix. The install script covers those systems.
+
+## Install script
 
 **macOS and Linux**
 
@@ -17,79 +28,31 @@ curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh
 irm https://tidefetch.ijlalahmad.dev/install.ps1 | iex
 ```
 
-That is the whole install. The script detects your OS and CPU, downloads the
-matching binary from the latest release, verifies its SHA-256 against the
-published checksums, and puts it on your `PATH`.
+The script detects your OS and CPU, downloads the matching archive from the latest GitHub release, verifies its SHA-256 against the published `checksums.txt`, and installs the binary:
 
-Then confirm everything is wired up:
+- macOS and Linux: `/usr/local/bin` when it is writable or the script runs as root, otherwise `~/.local/bin`. It warns if that directory is not on your `PATH`. Use `curl … | sudo sh` for a system-wide install.
+- Windows: `%LOCALAPPDATA%\Programs\Tidefetch`, added to your user `PATH`. The script also installs aria2 through winget or Scoop when it is missing.
 
-```sh
-tidefetch version
-tidefetch doctor
-```
+Builds exist for Linux amd64, arm64 and armv7 (32-bit Raspberry Pi), macOS Intel and Apple silicon, and Windows amd64 and arm64.
 
-Re-run the same command to upgrade. Windows Terminal is recommended — the TUI
-uses truecolor and Unicode block glyphs that the legacy console host renders
-poorly.
-
-## The aria2 engine
-
-Tidefetch is an interface to [aria2](https://aria2.github.io), so the engine
-has to be present.
-
-| How you installed | aria2 |
-| --- | --- |
-| Windows script | Installed automatically |
-| Homebrew | Installed automatically as a dependency |
-| Docker | Bundled in the image |
-| Linux or macOS script | Install it yourself, see below |
-
-```sh
-brew install aria2          # macOS
-sudo apt install aria2      # Debian, Ubuntu
-sudo dnf install aria2      # Fedora, RHEL
-sudo pacman -S aria2        # Arch
-sudo apk add aria2          # Alpine
-```
-
-`tidefetch doctor` tells you if it is missing.
-
-## Homebrew
-
-Use this if you would rather Homebrew owned upgrades. It pulls in aria2 too.
-
-```sh
-brew install thre4dripper/tap/tidefetch
-brew upgrade tidefetch
-brew uninstall tidefetch
-```
-
-Tidefetch is not published to Winget, Scoop, Chocolatey, APT, DNF, AUR or Nix —
-the install script replaces all of them.
-
-## Install script options
+### Options
 
 Set environment variables before `sh` to change the defaults:
 
-```sh
-# Pin a version and choose the target directory.
-curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh \
-  | TIDEFETCH_VERSION=v0.2.0 TIDEFETCH_INSTALL_DIR="$HOME/bin" sh
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `TIDEFETCH_VERSION` | latest release | Install a specific tag, for example `v0.1.0` |
+| `TIDEFETCH_INSTALL_DIR` | `/usr/local/bin`, else `~/.local/bin` | Target directory |
+| `TIDEFETCH_NO_SUDO` | unset | Set to `1` to never escalate |
 
-# Never escalate, even if sudo is available.
-curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | TIDEFETCH_NO_SUDO=1 sh
+```sh
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh \
+  | TIDEFETCH_INSTALL_DIR="$HOME/bin" sh
 ```
 
-| Variable | Default |
-| --- | --- |
-| `TIDEFETCH_VERSION` | latest release |
-| `TIDEFETCH_INSTALL_DIR` | `/usr/local/bin`, else `~/.local/bin` |
-| `TIDEFETCH_NO_SUDO` | unset |
+The Windows script honours `TIDEFETCH_VERSION` and `TIDEFETCH_INSTALL_DIR` as well.
 
-The Windows script accepts the same first two and installs to
-`%LOCALAPPDATA%\Programs\Tidefetch`.
-
-Piping a script into a shell means trusting it, so read it first if you prefer:
+Piping a script into a shell means trusting it. To read it first:
 
 ```sh
 curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh -o install.sh
@@ -97,25 +60,26 @@ less install.sh
 sh install.sh
 ```
 
-### Manual download
+## Homebrew
 
-Archives are attached to every release for `linux` (`amd64`, `arm64`, `armv7`),
-`darwin` (`amd64`, `arm64`) and `windows` (`amd64`, `arm64`):
+The cask lives in the `thre4dripper/tap` tap, not in Homebrew core, and pulls in the `aria2` formula:
 
 ```sh
-curl -fsSL https://github.com/Thre4dripper/tidefetch/releases/latest/download/tidefetch_linux_amd64.tar.gz \
-  | tar -xz tidefetch
-sudo install -m 0755 tidefetch /usr/local/bin/tidefetch
+brew install thre4dripper/tap/tidefetch
 ```
 
-### Uninstall
+Upgrade with `brew upgrade tidefetch` and remove with `brew uninstall tidefetch`. The cask is built for macOS; on Linux use the install script.
 
-Delete the binary the installer reported, then remove `~/.config/tidefetch`
-and `~/.local/share/tidefetch`.
+## Container image
 
-## Containers
+The image bundles aria2 and runs the web UI. It is published to GitHub Container Registry with a Docker Hub mirror, for `linux/amd64` and `linux/arm64`:
 
-### Docker
+```text
+ghcr.io/thre4dripper/tidefetch:latest
+ijlalahmad/tidefetch:latest
+```
+
+Every release adds its own tags, for example `0.1.0` and `0.1`. Use `latest` to try it out and a release tag for anything you rely on.
 
 ```sh
 docker run -d \
@@ -128,122 +92,97 @@ docker run -d \
   ghcr.io/thre4dripper/tidefetch:latest
 ```
 
-Images are multi-arch — Docker pulls the right build for your CPU automatically:
+The password is required: the container listens on all interfaces, and Tidefetch refuses to do that without one. Open `http://<host>:8210` and sign in.
 
-```sh
-docker pull ghcr.io/thre4dripper/tidefetch:latest   # GitHub Container Registry
-docker pull ijlalahmad/tidefetch:latest             # Docker Hub mirror
-```
-
-Pin a version for anything you care about:
-
-```sh
-docker pull ghcr.io/thre4dripper/tidefetch:0.2.0
-```
-
-### Docker Compose
-
-```yaml
-services:
-  tidefetch:
-    image: ghcr.io/thre4dripper/tidefetch:latest
-    container_name: tidefetch
-    restart: unless-stopped
-    environment:
-      TIDEFETCH_PASSWORD: replace-this-password
-    ports:
-      - "8210:8210"
-      - "6881:6881"
-      - "6881:6881/udp"
-    volumes:
-      - ./config:/config
-      - ./downloads:/downloads
-```
-
-### Podman
-
-```sh
-podman run -d --name tidefetch --replace \
-  -p 8210:8210 \
-  -e TIDEFETCH_PASSWORD='replace-this-password' \
-  -v tidefetch-config:/config:Z \
-  -v /srv/downloads:/downloads:Z \
-  ghcr.io/thre4dripper/tidefetch:latest
-```
-
-### Kubernetes (Helm)
-
-The chart is published as an OCI artifact to GitHub Container Registry:
+[Docker and Podman](deployment/docker.md) covers Compose, secrets, volumes and permissions. On Kubernetes, use the Helm chart:
 
 ```sh
 helm install tidefetch oci://ghcr.io/thre4dripper/charts/tidefetch \
   --namespace tidefetch --create-namespace \
-  --set auth.password='replace-this-password' \
-  --set persistence.downloads.size=200Gi
+  --set auth.password='replace-this-password'
 ```
 
-See [Kubernetes deployment](deployment/kubernetes.md) for raw manifests and
-storage guidance.
+See [Kubernetes and k3s](deployment/kubernetes.md).
 
 ## Go toolchain
+
+Requires Go 1.26.1 or newer. The embedded web UI is committed to the repository, so Node.js is not needed:
 
 ```sh
 go install github.com/Thre4dripper/tidefetch/cmd/tidefetch@latest
 ```
 
-This builds the binary only — install aria2 separately with your package
-manager, then run `tidefetch doctor`.
+Then [install aria2](#install-aria2).
 
-## From source
+## Manual download
 
-Requires Go 1.26.1+, Node.js 20+, Make and aria2.
+Archives for every platform are attached to each [GitHub release](https://github.com/Thre4dripper/tidefetch/releases) together with `checksums.txt`:
+
+```sh
+curl -fsSLO https://github.com/Thre4dripper/tidefetch/releases/latest/download/tidefetch_linux_amd64.tar.gz
+curl -fsSLO https://github.com/Thre4dripper/tidefetch/releases/latest/download/checksums.txt
+sha256sum -c checksums.txt --ignore-missing
+tar -xzf tidefetch_linux_amd64.tar.gz tidefetch
+sudo install -m 0755 tidefetch /usr/local/bin/tidefetch
+```
+
+On macOS use `shasum -a 256 -c`, on Windows `Get-FileHash -Algorithm SHA256`. Every archive also carries a GitHub build provenance attestation:
+
+```sh
+gh attestation verify tidefetch_linux_amd64.tar.gz --repo Thre4dripper/tidefetch
+```
+
+## Install aria2
+
+Tidefetch drives aria2 over RPC, so `aria2c` must be on your `PATH` unless you use the container image or the Windows script. Version 1.36 or newer.
+
+```sh
+brew install aria2          # macOS
+sudo apt install aria2      # Debian, Ubuntu
+sudo dnf install aria2      # Fedora, RHEL
+sudo pacman -S aria2        # Arch
+sudo apk add aria2          # Alpine
+winget install aria2.aria2  # Windows
+```
+
+## Verify
+
+```sh
+tidefetch version
+tidefetch doctor
+```
+
+`doctor` reports the config file, the aria2 binary and its version, whether the RPC endpoint answers, and whether the download and data directories are writable.
+
+## Upgrade
+
+| Installed with | Upgrade |
+| --- | --- |
+| Install script | Re-run the same one-liner |
+| Homebrew | `brew upgrade tidefetch` |
+| Container | Pull the new tag and recreate the container |
+| Go | Re-run `go install …@latest` |
+
+The config file is forward-compatible. Run `tidefetch doctor` afterwards to confirm everything still resolves.
+
+## Uninstall
+
+Delete the binary the installer reported. To remove your settings and history as well, delete:
+
+- Config: `~/.config/tidefetch` on Linux, `~/Library/Application Support/tidefetch` on macOS, `%AppData%\tidefetch` on Windows
+- Data: `~/.local/share/tidefetch`
+
+## Build from source
+
+Requires Go 1.26.1 or newer, Node.js 22, Make and aria2:
 
 ```sh
 git clone https://github.com/Thre4dripper/tidefetch.git
 cd tidefetch
-make build
+make build          # web UI + Go binary with embedded assets
 ./tidefetch doctor
 ```
 
-`make install` places the binary in `$(go env GOPATH)/bin`.
+`make install` places the binary in `$(go env GOPATH)/bin`. Other targets: `make backend` (Go only, reuses the last web build), `make test`, `make site` and `make docker`.
 
-Useful targets:
-
-```sh
-make build      # web assets + binary
-make backend    # Go only, reuses the last web build
-make site       # product site
-make test       # unit and integration tests
-make docker     # container image
-```
-
-## Verify a download
-
-`tidefetch doctor` checks the config file, aria2 binary, RPC connectivity,
-download directory and data directory.
-
-The install script already verifies checksums for you. To check a manual
-download, release artifacts ship a checksum manifest:
-
-```sh
-curl -fsSLO https://github.com/Thre4dripper/tidefetch/releases/latest/download/checksums.txt
-sha256sum -c checksums.txt --ignore-missing
-```
-
-On macOS use `shasum -a 256 -c`. On Windows use `Get-FileHash -Algorithm SHA256`.
-
-## First run
-
-```sh
-tidefetch                                  # the TUI
-tidefetch https://example.com/file.iso     # queue a download on launch
-tidefetch serve                            # web UI on http://127.0.0.1:8210
-```
-
-Continue with [Configuration](configuration.md), or jump to
-[Homelab operations](homelab.md) for server deployments.
-
-## Publishing new releases
-
-Maintainers: see [Publishing](publishing.md) for the release pipeline and the
-one-time credentials each registry needs.
+Next: [Quick start](quick-start.md).

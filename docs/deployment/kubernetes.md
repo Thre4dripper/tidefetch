@@ -1,35 +1,63 @@
 # Kubernetes and k3s
 
-The manifests deploy one Tidefetch pod with a Recreate strategy, two PVCs, a
-secret-mounted password, non-root security settings, health probes, and a
-ClusterIP service.
+Deploy one Tidefetch pod with persistent storage, a secret-backed password and a ClusterIP service, using either the Helm chart or the raw manifests in `packaging/kubernetes/`. Both run the pod as UID 1000 without privileges and use a Recreate strategy, because one aria2 session volume must never be written by two pods.
 
 ## Prerequisites
 
 - Kubernetes 1.27 or newer, including k3s
-- A default StorageClass or explicit storage classes in `storage.yaml`
-- A published Tidefetch image accessible to cluster nodes
-- `kubectl` and this repository checkout
+- A default StorageClass, or explicit classes for the two claims
+- `kubectl`, and Helm 3.8 or newer for the chart
 
-## Review storage
+## Helm chart
 
-Defaults:
+The chart is published as an OCI artifact:
 
-- Config PVC: 2 GiB, `ReadWriteOnce`
-- Downloads PVC: 100 GiB, `ReadWriteOnce`
+```sh
+helm install tidefetch oci://ghcr.io/thre4dripper/charts/tidefetch \
+  --namespace tidefetch --create-namespace \
+  --set auth.password='replace-this-password' \
+  --set persistence.downloads.size=200Gi
+```
 
-Edit `packaging/kubernetes/storage.yaml` before applying. For a specific class:
+Key values:
+
+| Value | Default | Meaning |
+| --- | --- | --- |
+| `image.tag` | the chart's `appVersion` | Image tag to run |
+| `auth.enabled` | `true` | Require a password; `false` adds `-no-auth` |
+| `auth.password` | none | Password, stored in a generated Secret |
+| `auth.existingSecret`, `auth.secretKey` | none, `password` | Use your own Secret instead |
+| `persistence.config.size` | `2Gi` | Config claim |
+| `persistence.downloads.size` | `100Gi` | Downloads claim; or set `persistence.downloads.existingClaim` |
+| `persistence.*.storageClass` | cluster default | Storage class per claim |
+| `bittorrent.enabled` | `false` | Add a `LoadBalancer` service for port 6881 TCP and UDP |
+| `ingress.enabled`, `ingress.host`, `ingress.className` | `false`, `tidefetch.example.com`, `nginx` | Ingress; TLS secret via `ingress.tls.secretName` |
+| `resources` | 25m CPU and 64Mi requested, 512Mi limit | Pod resources |
+| `timezone` | `Etc/UTC` | `TZ` inside the container |
+
+Upgrade and remove:
+
+```sh
+helm upgrade tidefetch oci://ghcr.io/thre4dripper/charts/tidefetch -n tidefetch --reuse-values
+helm uninstall tidefetch -n tidefetch     # the claims are kept
+```
+
+## Raw manifests
+
+`packaging/kubernetes/` holds a namespace, two claims, the Deployment and a Service, applied with Kustomize.
+
+### Storage
+
+Defaults are a 2 GiB config claim and a 100 GiB downloads claim, both `ReadWriteOnce`. Edit `storage.yaml` before applying, for example to choose a class:
 
 ```yaml
 spec:
   storageClassName: longhorn
 ```
 
-On k3s, the default `local-path` class ties data to one node. Longhorn, NFS CSI,
-or another replicated class is preferable when node failure must not strand
-the queue.
+On k3s the default `local-path` class ties the data to one node. Use Longhorn, NFS CSI or another replicated class if a node failure must not strand the queue.
 
-## Create namespace and password
+### Password
 
 ```sh
 kubectl apply -f packaging/kubernetes/namespace.yaml
@@ -37,13 +65,11 @@ umask 077
 openssl rand -base64 36 > web-password
 kubectl -n tidefetch create secret generic tidefetch-web-password \
   --from-file=password=./web-password
-cat web-password
+cat web-password    # keep it in a password manager
 rm web-password
 ```
 
-Save the displayed password in a password manager.
-
-## Deploy
+### Deploy
 
 ```sh
 kubectl apply -k packaging/kubernetes
@@ -57,27 +83,15 @@ Test without an Ingress:
 kubectl -n tidefetch port-forward service/tidefetch 8210:8210
 ```
 
-Open `http://127.0.0.1:8210`.
+Then open <http://127.0.0.1:8210>.
 
 ## Ingress and TLS
 
-Copy the example, replace the hostname and issuer, then apply:
+Copy `packaging/kubernetes/ingress.example.yaml`, set the hostname and issuer, and apply it. Tidefetch must be served at the root of the hostname, not under a path. Current ingress controllers pass its WebSocket through without extra annotations. See [Reverse proxy and TLS](../reverse-proxy.md).
 
-```sh
-cp packaging/kubernetes/ingress.example.yaml /tmp/tidefetch-ingress.yaml
-$EDITOR /tmp/tidefetch-ingress.yaml
-kubectl apply -f /tmp/tidefetch-ingress.yaml
-kubectl -n tidefetch get ingress
-```
+## BitTorrent peer ports
 
-The application must remain at the hostname root. Current ingress controllers
-support its WebSocket endpoint without special annotations. See
-[Reverse proxy and TLS](../reverse-proxy.md).
-
-## Expose BitTorrent peer ports
-
-The base service exposes only the web UI inside the cluster. Add a
-LoadBalancer service if inbound peers are required:
+The base Service exposes only the web UI. For inbound peers, add a `LoadBalancer` Service, or set `bittorrent.enabled=true` in the chart:
 
 ```yaml
 apiVersion: v1
@@ -101,19 +115,15 @@ spec:
       protocol: UDP
 ```
 
-MetalLB is a common LoadBalancer implementation for bare-metal homelabs. Point
-router forwarding for TCP/UDP 6881 at the assigned address. Do not expose aria2
-RPC port 6800.
+MetalLB is the usual LoadBalancer on bare metal. Forward TCP and UDP 6881 from your router to the assigned address. Never expose aria2's RPC port 6800.
 
-## Pin and update the image
+## Upgrade
 
-Edit `deployment.yaml` to a release tag or digest:
+Pin a release tag rather than `latest`, then apply and watch the Recreate rollout:
 
 ```yaml
-image: ghcr.io/thre4dripper/tidefetch:0.2.0
+image: ghcr.io/thre4dripper/tidefetch:0.1.0
 ```
-
-Apply and watch the Recreate rollout:
 
 ```sh
 kubectl apply -k packaging/kubernetes
@@ -121,8 +131,7 @@ kubectl -n tidefetch rollout status deployment/tidefetch
 kubectl -n tidefetch logs deployment/tidefetch --tail=100
 ```
 
-Recreate intentionally allows downtime so two aria2 processes never mount and
-write the same session volume.
+The brief downtime is intentional: two aria2 processes must not write the same session volume.
 
 ## Rotate the password
 
@@ -134,31 +143,22 @@ kubectl -n tidefetch create secret generic tidefetch-web-password \
   --dry-run=client -o yaml | kubectl apply -f -
 rm web-password
 kubectl -n tidefetch rollout restart deployment/tidefetch
-kubectl -n tidefetch rollout status deployment/tidefetch
 ```
 
-Existing browser sessions end when the pod restarts.
+Browser sessions end when the pod restarts.
 
 ## Backups
 
-Prefer CSI VolumeSnapshots when the storage driver supports them. Otherwise,
-scale down and back up the mounted PVC from a temporary pod or the storage
-backend:
+Prefer CSI VolumeSnapshots. Otherwise scale to zero, copy the config claim, and scale back up:
 
 ```sh
 kubectl -n tidefetch scale deployment/tidefetch --replicas=0
 kubectl -n tidefetch wait --for=delete pod -l app.kubernetes.io/name=tidefetch --timeout=120s
-```
-
-After the storage snapshot or copy:
-
-```sh
+# snapshot or copy the tidefetch-config claim here
 kubectl -n tidefetch scale deployment/tidefetch --replicas=1
-kubectl -n tidefetch rollout status deployment/tidefetch
 ```
 
-Back up the config PVC at minimum. The downloads PVC follows the normal data
-retention policy for the cluster.
+The config claim is the irreplaceable one; the downloads claim follows your normal retention policy.
 
 ## Troubleshooting
 
@@ -169,8 +169,7 @@ kubectl -n tidefetch get events --sort-by=.lastTimestamp
 kubectl -n tidefetch get pvc
 ```
 
-Common causes are an unbound PVC, image-pull credentials, a missing password
-secret, or a storage backend that cannot set ownership for fsGroup 1000.
+The usual causes are an unbound claim, image pull credentials, a missing password Secret, or a storage backend that cannot apply `fsGroup` 1000.
 
 ## Uninstall
 
@@ -179,5 +178,4 @@ kubectl delete -k packaging/kubernetes
 kubectl -n tidefetch delete secret tidefetch-web-password
 ```
 
-PVCs may remain depending on deletion order and storage policy. Confirm and
-back them up before deleting the namespace.
+Claims may survive depending on your storage policy. Back them up before deleting the namespace.
