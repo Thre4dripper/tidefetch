@@ -9,7 +9,7 @@ const REPO_BLOB = 'https://github.com/Thre4dripper/tidefetch/blob/main/';
  * Rewrite a repository-relative markdown link to a site route.
  *
  * @param {string} href raw href from the markdown source
- * @param {string} base site base path, e.g. "/tidefetch/"
+ * @param {string} base site base path, "/" in production
  * @returns {string}
  */
 export function rewriteDocHref(href, base) {

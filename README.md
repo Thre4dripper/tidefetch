@@ -11,9 +11,9 @@
   [![License: MIT](https://img.shields.io/badge/license-MIT-5ed8e7.svg)](LICENSE)
   [![Container](https://img.shields.io/badge/container-GHCR-8c82ff.svg)](https://github.com/Thre4dripper/tidefetch/pkgs/container/tidefetch)
 
-  [Website](https://thre4dripper.github.io/tidefetch/) ·
-  [Documentation](https://thre4dripper.github.io/tidefetch/docs/getting-started) ·
-  [Install](https://thre4dripper.github.io/tidefetch/docs/installation) ·
+  [Website](https://tidefetch.ijlalahmad.dev/) ·
+  [Documentation](https://tidefetch.ijlalahmad.dev/docs/getting-started) ·
+  [Install](https://tidefetch.ijlalahmad.dev/docs/installation) ·
   [Releases](https://github.com/Thre4dripper/tidefetch/releases)
 </div>
 
@@ -43,13 +43,13 @@ box lives elsewhere and you want to manage it from a browser.
 **macOS and Linux**
 
 ```sh
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh
 ```
 
 **Windows**
 
 ```powershell
-irm https://thre4dripper.github.io/tidefetch/install.ps1 | iex
+irm https://tidefetch.ijlalahmad.dev/install.ps1 | iex
 ```
 
 The installer detects your OS and CPU, downloads the matching release,
@@ -68,7 +68,7 @@ Then verify everything is wired up:
 tidefetch doctor
 ```
 
-See the full [installation guide](https://thre4dripper.github.io/tidefetch/docs/installation)
+See the full [installation guide](https://tidefetch.ijlalahmad.dev/docs/installation)
 for upgrades, manual downloads, checksums and source builds.
 
 ## ⌨️ Use the TUI
@@ -110,10 +110,10 @@ docker run -d \
 The image is multi-architecture (`amd64` and `arm64`); Docker selects the
 correct build automatically.
 
-Deployment guides: [Docker & Podman](https://thre4dripper.github.io/tidefetch/docs/deployment/docker) ·
-[Kubernetes & k3s](https://thre4dripper.github.io/tidefetch/docs/deployment/kubernetes) ·
-[Unraid](https://thre4dripper.github.io/tidefetch/docs/deployment/unraid) ·
-[Reverse proxy & TLS](https://thre4dripper.github.io/tidefetch/docs/reverse-proxy)
+Deployment guides: [Docker & Podman](https://tidefetch.ijlalahmad.dev/docs/deployment/docker) ·
+[Kubernetes & k3s](https://tidefetch.ijlalahmad.dev/docs/deployment/kubernetes) ·
+[Unraid](https://tidefetch.ijlalahmad.dev/docs/deployment/unraid) ·
+[Reverse proxy & TLS](https://tidefetch.ijlalahmad.dev/docs/reverse-proxy)
 
 ## 🧭 Two Interfaces, One Queue
 
@@ -132,13 +132,13 @@ files, history and settings. Choose whichever screen is closest to you.
 The README is the short tour. The product site contains the maintained,
 searchable guides:
 
-- [Getting started](https://thre4dripper.github.io/tidefetch/docs/getting-started)
-- [Installation](https://thre4dripper.github.io/tidefetch/docs/installation)
-- [Configuration and command flags](https://thre4dripper.github.io/tidefetch/docs/configuration)
-- [HTTP API for dashboards and scripts](https://thre4dripper.github.io/tidefetch/docs/api)
-- [Data and persistence](https://thre4dripper.github.io/tidefetch/docs/data-and-persistence)
-- [Homelab operations](https://thre4dripper.github.io/tidefetch/docs/homelab)
-- [Troubleshooting](https://thre4dripper.github.io/tidefetch/docs/troubleshooting)
+- [Getting started](https://tidefetch.ijlalahmad.dev/docs/getting-started)
+- [Installation](https://tidefetch.ijlalahmad.dev/docs/installation)
+- [Configuration and command flags](https://tidefetch.ijlalahmad.dev/docs/configuration)
+- [HTTP API for dashboards and scripts](https://tidefetch.ijlalahmad.dev/docs/api)
+- [Data and persistence](https://tidefetch.ijlalahmad.dev/docs/data-and-persistence)
+- [Homelab operations](https://tidefetch.ijlalahmad.dev/docs/homelab)
+- [Troubleshooting](https://tidefetch.ijlalahmad.dev/docs/troubleshooting)
 
 ## 🧩 Go RPC Client
 

@@ -7,7 +7,7 @@
     architecture, verifies its SHA-256 against the release checksums file, and
     installs it into a user-writable directory that is added to PATH.
 
-    irm https://thre4dripper.github.io/tidefetch/install.ps1 | iex
+    irm https://tidefetch.ijlalahmad.dev/install.ps1 | iex
 
 .PARAMETER Version
     Install a specific tag (for example v0.2.0). Defaults to the latest release.

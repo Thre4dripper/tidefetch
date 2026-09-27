@@ -1,5 +1,5 @@
 // History-based routing. Every route resolves to a real URL such as
-// /tidefetch/docs/installation, which is what search engines index — URL
+// /docs/installation, which is what search engines index — URL
 // fragments (#/docs/...) are never sent to the server and are ignored by
 // crawlers, so the whole documentation set would collapse into one page.
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Tidefetch installer for macOS and Linux.
 #
-#   curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh
+#   curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh
 #
 # Nothing is compiled: this downloads the prebuilt static binary that matches
 # your platform, verifies its SHA-256 against the checksums file from the
@@ -52,7 +52,7 @@ detect_os() {
 	Darwin) echo darwin ;;
 	MINGW* | MSYS* | CYGWIN* | Windows_NT)
 		die "Windows detected. Run the PowerShell installer instead:
-  irm https://thre4dripper.github.io/tidefetch/install.ps1 | iex"
+  irm https://tidefetch.ijlalahmad.dev/install.ps1 | iex"
 		;;
 	*) die "unsupported operating system: $os" ;;
 	esac

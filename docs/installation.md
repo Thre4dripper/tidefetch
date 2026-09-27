@@ -8,13 +8,13 @@ gets you the terminal UI; add `tidefetch serve` later if you want the web UI.
 **macOS and Linux**
 
 ```sh
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh
 ```
 
 **Windows** (PowerShell)
 
 ```powershell
-irm https://thre4dripper.github.io/tidefetch/install.ps1 | iex
+irm https://tidefetch.ijlalahmad.dev/install.ps1 | iex
 ```
 
 That is the whole install. The script detects your OS and CPU, downloads the
@@ -73,11 +73,11 @@ Set environment variables before `sh` to change the defaults:
 
 ```sh
 # Pin a version and choose the target directory.
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh \
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh \
   | TIDEFETCH_VERSION=v0.2.0 TIDEFETCH_INSTALL_DIR="$HOME/bin" sh
 
 # Never escalate, even if sudo is available.
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | TIDEFETCH_NO_SUDO=1 sh
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | TIDEFETCH_NO_SUDO=1 sh
 ```
 
 | Variable | Default |
@@ -92,7 +92,7 @@ The Windows script accepts the same first two and installs to
 Piping a script into a shell means trusting it, so read it first if you prefer:
 
 ```sh
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh -o install.sh
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh -o install.sh
 less install.sh
 sh install.sh
 ```

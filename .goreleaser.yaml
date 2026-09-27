@@ -115,10 +115,10 @@ release:
 
     ```sh
     # macOS, Linux
-    curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh
+    curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh
 
     # Windows (PowerShell)
-    irm https://thre4dripper.github.io/tidefetch/install.ps1 | iex
+    irm https://tidefetch.ijlalahmad.dev/install.ps1 | iex
 
     # macOS via Homebrew
     brew install thre4dripper/tap/tidefetch
@@ -127,4 +127,4 @@ release:
     docker pull ghcr.io/thre4dripper/tidefetch:{{ .Version }}
     ```
 
-    Full documentation: https://thre4dripper.github.io/tidefetch/docs/installation
+    Full documentation: https://tidefetch.ijlalahmad.dev/docs/installation

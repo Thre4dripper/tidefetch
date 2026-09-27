@@ -5,7 +5,9 @@
   import { findDoc } from './lib/docs-content';
   import { interceptLinks, parse, type Route } from './lib/router';
 
-  const SITE = 'https://thre4dripper.github.io/tidefetch/';
+  // Injected at build time from site.config.mjs, so canonical URLs follow
+  // wherever this build is deployed.
+  const SITE = __SITE_URL__;
 
   let route = $state<Route>(parse());
 

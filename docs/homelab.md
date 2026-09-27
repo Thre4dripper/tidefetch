@@ -110,7 +110,7 @@ Install the binary, then create a dedicated system user and the directories the
 unit expects:
 
 ```sh
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sudo sh
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sudo sh
 sudo useradd --system --home-dir /var/lib/tidefetch --shell /usr/sbin/nologin tidefetch
 sudo mkdir -p /srv/downloads /etc/tidefetch
 sudo chown tidefetch:tidefetch /srv/downloads
@@ -149,7 +149,7 @@ sudo apt install aria2     # or dnf/pacman/apk
 Upgrade by re-running the install script and restarting the service:
 
 ```sh
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sudo sh
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sudo sh
 sudo systemctl restart tidefetch
 ```
 

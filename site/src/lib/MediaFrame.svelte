@@ -32,7 +32,7 @@
       <span>MEDIA SLOT</span>
       <strong>{item.label}</strong>
       <p>{item.dimensions}</p>
-      <code>{item.src.replace('/media/', '')}</code>
+      <code>{item.src.split('/').pop()}</code>
     </div>
   {/if}
   {#if !item.enabled}

@@ -13,3 +13,7 @@ site/dist/
 # they are embedded into the binary by go:embed.
 /dist/
 .capture/
+
+# Vercel CLI project link and the OIDC token it pulls into .env.local
+.vercel/
+.env.local

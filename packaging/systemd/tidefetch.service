@@ -1,6 +1,6 @@
 [Unit]
 Description=Tidefetch web UI (aria2 download manager)
-Documentation=https://thre4dripper.github.io/tidefetch/docs/homelab
+Documentation=https://tidefetch.ijlalahmad.dev/docs/homelab
 After=network-online.target
 Wants=network-online.target
 

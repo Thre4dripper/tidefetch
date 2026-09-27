@@ -10,6 +10,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import { rewriteDocHref, slugifyHeading } from '../src/lib/doc-links.js';
+import { resolveSite } from '../site.config.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const siteDir = join(here, '..');
@@ -17,8 +18,8 @@ const repoDir = join(siteDir, '..');
 const distDir = join(siteDir, 'dist');
 const docsDir = join(repoDir, 'docs');
 
-const SITE = 'https://thre4dripper.github.io/tidefetch/';
-const BASE = '/tidefetch/';
+// Same resolution as vite.config.ts, so canonical tags match the asset paths.
+const { url: SITE, base: BASE } = resolveSite();
 
 const manifest = JSON.parse(await readFile(join(siteDir, 'src/docs-manifest.json'), 'utf8'));
 const pages = manifest.flatMap((section) => section.pages);
@@ -78,7 +79,7 @@ function applyHead(html, meta) {
 }
 
 function inject(html, body) {
-  return html.replace('<div id="app"></div>', `<div id="app">${body}</div>`);
+  return html.replace('<div id="app"></div>', `<div id="app"><main>${body}</main></div>`);
 }
 
 function docNav(activeSlug) {
@@ -106,7 +107,7 @@ for (const page of pages) {
   const markdown = await readFile(join(docsDir, page.file), 'utf8');
   const content = marked.parse(markdown, { renderer, async: false });
 
-  const body = `<main>${docNav(page.slug)}<article>${content}</article></main>`;
+  const body = `${docNav(page.slug)}<article>${content}</article>`;
   const canonical = `${SITE}docs/${page.slug}`;
 
   const html = inject(
@@ -127,13 +128,13 @@ for (const page of pages) {
 // ── Landing route ────────────────────────────────────────────────────────────
 // The template is already the landing page; give crawlers real copy inside #app
 // instead of an empty mount point.
-const landingBody = `<main>
+const landingBody = `
   <h1>Tidefetch — the download manager that lives in your terminal</h1>
   <p>Tidefetch is a keyboard-first terminal UI (TUI) for the aria2 download engine, built for people who live in a shell. The same static binary also serves a self-hosted web UI, so headless servers and homelabs get a browser dashboard on demand.</p>
   <h2>A TUI for your laptop. A web UI for your server.</h2>
   <p>Run it as a terminal download manager on your own machine, or run <code>tidefetch serve</code> on a NAS, VPS or Raspberry Pi and manage the same queue from any browser on your network.</p>
   <h2>Install</h2>
-  <pre><code>curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh</code></pre>
+  <pre><code>curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh</code></pre>
   <p>Also available via Homebrew, Docker, Helm and <code>go install</code>.</p>
   <h2>Features</h2>
   <ul>
@@ -145,7 +146,7 @@ const landingBody = `<main>
   </ul>
   <h2>Documentation</h2>
   ${docNav('')}
-</main>`;
+`;
 
 await writeFile(join(distDir, 'index.html'), inject(template, landingBody));
 written.push('');
@@ -153,7 +154,7 @@ written.push('');
 // ── SPA fallback for unknown deep links ──────────────────────────────────────
 await writeFile(join(distDir, '404.html'), inject(template, landingBody));
 
-// ── Sitemap ──────────────────────────────────────────────────────────────────
+// ── Sitemap and robots ───────────────────────────────────────────────────────
 const urls = written
   .map(
     (route) =>
@@ -166,4 +167,8 @@ await writeFile(
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`
 );
 
-console.log(`prerendered ${written.length} routes + sitemap.xml`);
+// Generated here rather than kept in public/ because the sitemap URL depends
+// on where this build is published.
+await writeFile(join(distDir, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}sitemap.xml\n`);
+
+console.log(`prerendered ${written.length} routes + sitemap.xml + robots.txt for ${SITE}`);

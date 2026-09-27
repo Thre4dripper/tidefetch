@@ -9,7 +9,7 @@ packages, container images and the Helm chart in one pass.
 | Target | Artifact | Automated |
 | --- | --- | --- |
 | GitHub Releases | archives, checksums, provenance attestation | yes |
-| Install scripts | `install.sh` / `install.ps1` on GitHub Pages | yes |
+| Install scripts | `install.sh` / `install.ps1` at the site root on Vercel | yes |
 | Docker Hub + GHCR | multi-arch `linux/amd64` and `linux/arm64` images | yes |
 | Homebrew | cask in `Thre4dripper/homebrew-tap` | yes |
 | Helm chart | `oci://ghcr.io/thre4dripper/charts` | yes |
@@ -66,12 +66,15 @@ gh attestation verify tidefetch_linux_amd64.tar.gz --repo Thre4dripper/tidefetch
 gh attestation verify oci://ghcr.io/thre4dripper/tidefetch:0.2.0 --repo Thre4dripper/tidefetch
 ```
 
-### GitHub Pages
+### Product site on Vercel
 
-The install scripts are served from the product site. Enable **Settings → Pages
-→ Source: GitHub Actions** once, then the `site` workflow publishes
-`install.sh` and `install.ps1` to the site root on every push to `main` that
-touches `site/**`, `docs/**` or `scripts/install.*`.
+The product site, the documentation and the install scripts are one static
+build of `site/`, deployed by Vercel from the `tidefetch` project (root
+directory `site`, Vite preset). Every push to `main` redeploys
+<https://tidefetch.ijlalahmad.dev/> and pull requests get preview URLs. The
+site imports `docs/*.md` at build time and copies `scripts/install.*` to its
+root, so a docs or installer change is live as soon as the deployment
+finishes. Nothing needs to be enabled per release.
 
 ## The first release
 
@@ -79,8 +82,8 @@ The install script and the binaries it downloads are hosted independently, so
 there is no bootstrap problem — but the order matters, because the script is
 useless until a release exists for it to fetch.
 
-1. Enable GitHub Pages and merge to `main`. The `site` workflow publishes
-   `https://thre4dripper.github.io/tidefetch/install.sh`. At this point the URL
+1. Merge to `main` and let Vercel deploy the site. That publishes
+   `https://tidefetch.ijlalahmad.dev/install.sh`. At this point the URL
    resolves but the script has nothing to install yet.
 2. Push the first tag: `git tag v0.2.0 && git push origin v0.2.0`. The `release`
    workflow builds the archives and `checksums.txt` and publishes the release.
@@ -89,7 +92,7 @@ useless until a release exists for it to fetch.
    ```sh
    docker run --rm -it debian:stable-slim sh -c \
      'apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null &&
-      curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh &&
+      curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh &&
       tidefetch version'
    ```
 
@@ -177,7 +180,7 @@ GitHub excludes prereleases from `/releases/latest`, so the install script keeps
 serving the last stable version. Testers opt in explicitly:
 
 ```sh
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh \
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh \
   | TIDEFETCH_VERSION=v1.0.0-rc.1 sh
 ```
 
@@ -218,7 +221,7 @@ when the template is added or renamed.
 ## Verifying a published release
 
 ```sh
-curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh && tidefetch version
+curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh && tidefetch version
 brew install thre4dripper/tap/tidefetch && tidefetch version
 docker run --rm ghcr.io/thre4dripper/tidefetch:0.3.0 version
 helm show chart oci://ghcr.io/thre4dripper/charts/tidefetch | grep version

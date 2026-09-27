@@ -31,7 +31,7 @@
   let surface = $state<'terminal' | 'web'>('terminal');
 
   const commands = {
-    script: 'curl -fsSL https://thre4dripper.github.io/tidefetch/install.sh | sh',
+    script: 'curl -fsSL https://tidefetch.ijlalahmad.dev/install.sh | sh',
     brew: 'brew install thre4dripper/tap/tidefetch',
     docker: 'docker run -d -p 8210:8210 -v tidefetch:/config ghcr.io/thre4dripper/tidefetch',
     go: 'go install github.com/Thre4dripper/tidefetch/cmd/tidefetch@latest'
